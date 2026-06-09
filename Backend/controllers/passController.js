@@ -1,5 +1,6 @@
 import Pass from "../models/Pass.js";
 import QRCode from "qrcode";
+import PDFDocument from "pdfkit";
 
 
 // Generate Pass
@@ -52,4 +53,54 @@ export const getPasses = async (req, res) => {
     });
 
   }
+};
+// Generate PDF Pass
+export const generatePassPDF = async (req, res) => {
+
+  try {
+
+    const pass = await Pass.findById(req.params.id);
+
+    if (!pass) {
+      return res.status(404).json({
+        msg: "Pass not found"
+      });
+    }
+
+    const doc = new PDFDocument();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=VisitorPass.pdf"
+    );
+
+    doc.pipe(res);
+
+    doc.fontSize(24).text("Visitor Pass", {
+      align: "center"
+    });
+
+    doc.moveDown();
+
+    doc.fontSize(16).text(`Pass ID: ${pass._id}`);
+
+    doc.text(`Visitor ID: ${pass.visitorId}`);
+
+    doc.text(`Appointment ID: ${pass.appointmentId}`);
+
+    doc.moveDown();
+
+    doc.text("QR Code Generated Successfully");
+
+    doc.end();
+
+  } catch (error) {
+
+    res.status(500).json({
+      error: error.message
+    });
+
+  }
+
 };

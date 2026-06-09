@@ -3,11 +3,12 @@ import Visitor from "../models/visitor.js"
 // Add Visitor
 export const addVisitor = async (req, res) => {
   try {
-    const { name, phone, purpose } = req.body;
+    const { name, phone, email, purpose } = req.body;
 
     const visitor = new Visitor({
       name,
       phone,
+      email,
       purpose
     });
 
@@ -28,5 +29,26 @@ export const getVisitors = async (req, res) => {
 
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+// Delete Visitor
+export const deleteVisitor = async (req, res) => {
+  try {
+    const visitor = await Visitor.findByIdAndDelete(req.params.id);
+
+    if (!visitor) {
+      return res.status(404).json({
+        msg: "Visitor not found"
+      });
+    }
+
+    res.status(200).json({
+      msg: "Visitor deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    });
   }
 };

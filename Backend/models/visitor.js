@@ -9,6 +9,9 @@ const visitorSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  email: {
+  type: String
+},
   purpose: {
     type: String,
     required: true
