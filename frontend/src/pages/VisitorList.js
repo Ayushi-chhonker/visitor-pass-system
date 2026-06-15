@@ -22,6 +22,38 @@ function VisitorList() {
 
     }
   };
+  const deleteVisitor = async (id) => {
+
+    try {
+
+        await axios.delete(
+
+            `http://localhost:5000/api/visitors/${id}`,
+
+            {
+
+                headers: {
+
+                    Authorization:
+                    `Bearer ${localStorage.getItem("token")}`
+
+                }
+
+            }
+
+        );
+
+        fetchVisitors();
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
 
   useEffect(() => {
 
@@ -58,6 +90,10 @@ function VisitorList() {
               <td>{visitor.phone}</td>
 
               <td>{visitor.purpose}</td>
+
+              <td>
+             <button onClick={() => deleteVisitor(visitor._id)}>Delete </button>
+             </td>
 
             </tr>
 

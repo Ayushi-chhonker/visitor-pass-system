@@ -11,14 +11,21 @@ function Login(){
 
     try{
         const res = await axios.post(
-            "http://localhost:5000/api/auth/login",
-            {
-                email,
-                password
-            }
-        );
-        alert("Login successfull");
-        console.log(res.data);
+  "http://localhost:5000/api/auth/login",
+  {
+    email,
+    password
+  }
+);
+
+console.log("Response:", res.data);
+
+localStorage.setItem("token", res.data.token);
+
+console.log("Saved Token:", localStorage.getItem("token"));
+
+alert("Login successful");
+window.location.href = "/dashboard";
     }catch(error){
         alert("Login failed");
         console.log(error);

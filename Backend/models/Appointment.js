@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import Visitor from "../models/Visitor.js";
+import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";
 
 const appointmentSchema = new mongoose.Schema({
      visitorId: {
@@ -14,15 +17,15 @@ const appointmentSchema = new mongoose.Schema({
   },
 
   date: {
-    type: "Date",
+    type: Date,
     required: true
-  },
+},
 
-  status: {
-    type: "String",
-    enum: ["pending","approved","rejected"],
+status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
     default: "pending"
-  }
+}
 },{timestamps: true})
 
 export default mongoose.model("Appointment", appointmentSchema);

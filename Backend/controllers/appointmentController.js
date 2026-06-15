@@ -1,4 +1,7 @@
 import Appointment from "../models/Appointment.js";
+import Visitor from "../models/Visitor.js";
+import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";
 
 
 // Create Appointment
@@ -14,6 +17,17 @@ export const createAppointment = async (req, res) => {
     });
 
     await appointment.save();
+
+const visitor = await Visitor.findById(visitorId);
+
+if (visitor && visitor.email) {
+
+  await sendEmail(
+    visitor.email,
+    "Appointment Created",
+    "Your appointment has been created successfully."
+  );
+}
 
     return res.status(201).json(appointment);
 
@@ -52,6 +66,21 @@ export const approveAppointment = async (req, res) => {
     appointment.status = "approved";
 
     await appointment.save();
+    const visitor = await Visitor.findById(appointment.visitorId);
+
+if (visitor && visitor.email) {
+  await sendEmail(
+    visitor.email,
+    "Appointment Approved",
+    `Hello ${visitor.name},
+
+Your appointment has been approved successfully.
+
+You can now visit the office.
+
+Thank you.`
+  );
+}
 
     return res.json({
       msg: "Appointment approved",

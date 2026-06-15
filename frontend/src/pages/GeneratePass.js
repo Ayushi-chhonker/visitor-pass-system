@@ -9,28 +9,36 @@ function Pass() {
 
   const generatePass = async () => {
 
-    try {
+  try {
 
-      const res = await axios.post(
-        "http://localhost:5000/api/passes",
-        {
-          visitorId,
-          appointmentId
+    const token = localStorage.getItem("token");
+
+    const res = await axios.post(
+      "http://localhost:5000/api/passes",
+      {
+        visitorId,
+        appointmentId
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      );
+      }
+    );
 
-      setPassData(res.data);
+    setPassData(res.data);
 
-      alert("Pass Generated Successfully");
+    alert("Pass Generated Successfully");
 
-    } catch (error) {
+  } catch (error) {
 
-      console.log(error.response.data);
+    console.log(error.response?.data);
 
-      alert("Error generating pass");
+    alert(error.response?.data?.msg || "Error generating pass");
 
-    }
-  };
+  }
+
+};
 
   return (
 

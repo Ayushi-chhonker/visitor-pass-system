@@ -11,12 +11,19 @@ function Appointment() {
 
     try {
 
+      const token = localStorage.getItem("token");
+
       const res = await axios.post(
         "http://localhost:5000/api/appointments",
         {
           visitorId,
           hostId,
           date
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       );
 
@@ -24,11 +31,15 @@ function Appointment() {
 
       alert("Appointment Created Successfully");
 
+      setVisitorId("");
+      setHostId("");
+      setDate("");
+
     } catch (error) {
 
-      console.log(error.response.data);
+      console.log(error.response?.data);
 
-      alert("Error Creating Appointment");
+      alert(error.response?.data?.msg || "Error Creating Appointment");
 
     }
   };
@@ -70,6 +81,7 @@ function Appointment() {
       </button>
 
     </div>
+
   );
 }
 

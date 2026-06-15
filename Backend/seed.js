@@ -23,8 +23,6 @@ const seedData = async () => {
 
     await Pass.deleteMany();
 
-    console.log("Old Data Removed");
-
 
 
     // Create Visitors

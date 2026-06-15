@@ -1,3 +1,4 @@
+import {validateEmail, validatePhone, validateRequired} from "../utils/validators.js";
 import Visitor from "../models/visitor.js"
 
 // Add Visitor
@@ -50,5 +51,51 @@ export const deleteVisitor = async (req, res) => {
     res.status(500).json({
       error: error.message
     });
+  }
+};
+//create visitor
+export const createVisitor = async (req, res) => {
+  try {
+    const { name, phone, email, purpose } = req.body;
+    if (!validateRequired(name, phone, purpose)) {
+
+  return res.status(400).json({
+    msg: "All required fields are mandatory"
+  });
+
+}
+
+if (email && !validateEmail(email)) {
+
+  return res.status(400).json({
+    msg: "Invalid email format"
+  });
+
+}
+
+if (!validatePhone(phone)) {
+
+  return res.status(400).json({
+    msg: "Phone number must contain exactly 10 digits"
+  });
+
+}
+
+   const photo = req.file ? req.file.filename : null;
+
+    const visitor = new Visitor({
+      name,
+      phone,
+      email,
+      purpose,
+      photo
+    });
+
+    await visitor.save();
+
+    res.status(201).json(visitor);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

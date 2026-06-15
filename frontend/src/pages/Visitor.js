@@ -7,33 +7,58 @@ function Visitor() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [photo, setPhoto] = useState(null);
 
   const addVisitor = async () => {
 
-    try {
+  try {
 
-      const res = await axios.post(
-        "http://localhost:5000/api/visitors",
-        {
-          name,
-          email,
-          phone,
-          purpose
+    const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("phone", phone);
+    formData.append("purpose", purpose);
+    formData.append("photo", photo);
+
+    const res = await axios.post(
+
+      "http://localhost:5000/api/visitors",
+
+      formData,
+
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
         }
-      );
+      }
 
-      console.log(res.data);
+    );
 
-      alert("Visitor Added Successfully");
+    console.log(res.data);
 
-    } catch (error) {
+    alert("Visitor Added Successfully");
 
-      console.log(error.response.data);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setPurpose("");
+    setPhoto(null);
 
-      alert("Error Adding Visitor");
+  }
 
-    }
-  };
+  catch (error) {
+
+    console.log(error.response?.data);
+
+    alert(error.response?.data?.msg || "Error Adding Visitor");
+
+  }
+
+};
 
   return (
 
@@ -74,6 +99,13 @@ function Visitor() {
         value={purpose}
         onChange={(e) => setPurpose(e.target.value)}
       />
+      <input
+       type="file"
+       accept="image/*"
+       onChange={(e) => setPhoto(e.target.files[0])}
+      />
+
+<br /><br />
 
       <br /><br />
 
@@ -82,6 +114,7 @@ function Visitor() {
       </button>
 
     </div>
+
   );
 }
 

@@ -11,7 +11,7 @@ export const generatePass = async (req, res) => {
     const { visitorId, appointmentId } = req.body;
 
     // QR data
-    const qrData = `Visitor:${visitorId}, Appointment:${appointmentId}`;
+    const qrData = `Visitor:${visitorId},Appointment:${appointmentId}`;
 
     // Generate QR image
     const qrCodeImage = await QRCode.toDataURL(qrData);
@@ -94,6 +94,50 @@ export const generatePassPDF = async (req, res) => {
     doc.text("QR Code Generated Successfully");
 
     doc.end();
+
+  } catch (error) {
+
+    res.status(500).json({
+      error: error.message
+    });
+
+  }
+
+};
+//verify pass
+export const verifyPass = async (req, res) => {
+
+  try {
+
+    const { visitorId, appointmentId } = req.params;
+
+    const pass = await Pass.findOne({
+      visitorId,
+      appointmentId
+    })
+    .populate("visitorId")
+    .populate("appointmentId");
+
+    if (!pass) {
+      return res.status(404).json({
+        msg: "Pass not found"
+      });
+    }
+
+    // Check if pass is already used
+    if (pass.status === "used") {
+      return res.status(400).json({
+        msg: "Pass already used"
+      });
+    }
+
+    // Mark pass as used
+    pass.status = "used";
+    pass.usedAt = new Date();
+
+    await pass.save();
+
+    res.json(pass);
 
   } catch (error) {
 

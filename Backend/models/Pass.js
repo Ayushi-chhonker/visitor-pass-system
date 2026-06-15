@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const passSchema = new mongoose.Schema({
 
   visitorId: {
@@ -22,6 +21,11 @@ const passSchema = new mongoose.Schema({
     type: String,
     enum: ["active", "used"],
     default: "active"
+  },
+
+usedAt: {
+    type: Date,
+    default: null
   }
 
 }, { timestamps: true });

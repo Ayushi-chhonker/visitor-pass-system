@@ -5,10 +5,12 @@ import {
   Link
 } from "react-router-dom";
 
-import Visitor from "./pages/Visitor";
-import Appointment from "./pages/Appointment";
+import Visitor from "./pages/Visitor.js";
+import Appointment from "./pages/Appointment.js";
 import Pass from "./pages/GeneratePass.js";
 import Dashboard from "./pages/Dashboard.js";
+import Login from "./pages/Login.js";
+import QRScanner from "./pages/QRScanner.js";
 import "./App.css";
 
 function App() {
@@ -29,7 +31,13 @@ function App() {
 
           <br /><br />
 
-          <Link to="/">
+          <Link to="/login">
+            Login
+          </Link>
+
+          <br /><br />
+
+          <Link to="/visitor">
             Add Visitor
           </Link>
 
@@ -44,6 +52,11 @@ function App() {
           <Link to="/pass">
             Generate Pass
           </Link>
+          <Link to="/scanner">
+          QR Scanner
+         </Link>
+
+        <br /><br />
 
         </nav>
 
@@ -55,10 +68,14 @@ function App() {
           path="/dashboard"
           element={<Dashboard />}
           />
+          <Route
+           path="/login" 
+           element={<Login />}
+           />
 
           <Route
-            path="/"
-            element={<Visitor />}
+          path="/visitor"
+          element={<Visitor />}
           />
 
           <Route
@@ -70,7 +87,10 @@ function App() {
             path="/pass"
             element={<Pass />}
           />
-
+          <Route
+          path="/scanner"
+          element={<QRScanner/>}
+          />
         </Routes>
 
         <footer className="footer">

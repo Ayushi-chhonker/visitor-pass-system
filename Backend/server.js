@@ -1,14 +1,15 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from "./routes/authRoutes.js";
 import visitorRoutes from "./routes/visitorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import passRoutes from "./routes/passRoutes.js"
 import logRoutes from "./routes/logRoutes.js";
+import path from "path";
 
-dotenv.config();
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use("/api/visitors", visitorRoutes);
 app.use("/api/appointments",appointmentRoutes);
 app.use("/api/passes", passRoutes);
 app.use("/api/logs",logRoutes);
+app.use("/uploads", express.static("uploads"));
 
 //test route
 app.get("/",(req , res)=> {

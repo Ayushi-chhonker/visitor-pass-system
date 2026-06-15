@@ -84,3 +84,18 @@ export const checkOut = async (req, res) => {
 
   }
 };
+
+export const getLogs = async (req, res) => {
+  try {
+    const logs = await Log.find()
+      .populate("visitorId")
+      .populate("passId");
+
+    res.json(logs);
+
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    });
+  }
+};
