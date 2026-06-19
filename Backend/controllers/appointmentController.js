@@ -1,93 +1,213 @@
 import Appointment from "../models/Appointment.js";
 import Visitor from "../models/Visitor.js";
-import User from "../models/User.js";
 import sendEmail from "../utils/sendEmail.js";
+import sendSMS from "../utils/sendSMS.js";
 
-
-// Create Appointment
+// Appointment creation
 export const createAppointment = async (req, res) => {
   try {
-
     const { visitorId, hostId, date } = req.body;
 
-    const appointment = new Appointment({
+    // Check required fields
+    if (!visitorId || !hostId || !date) {
+      return res.status(400).json({
+        msg: "Please provide all appointment details."
+      });
+    }
+
+    const newAppointment = new Appointment({
       visitorId,
       hostId,
       date
     });
 
-    await appointment.save();
+    await newAppointment.save();
 
-const visitor = await Visitor.findById(visitorId);
+    // Send email notification to visitor
+    const visitor = await Visitor.findById(visitorId);
 
-if (visitor && visitor.email) {
+    if (visitor && visitor.email) {
+      await sendEmail(
+        visitor.email,
+        "Appointment Created",
+        `Hello ${visitor.name},
 
-  await sendEmail(
-    visitor.email,
-    "Appointment Created",
-    "Your appointment has been created successfully."
-  );
-}
+Your appointment request has been created successfully.
 
-    return res.status(201).json(appointment);
+Date: ${date}
+
+Thank you.`
+      );
+    }
+
+    return res.status(201).json({
+      msg: "Appointment created successfully.",
+      appointment: newAppointment
+    });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Create Appointment Error:", error);
+
+    return res.status(500).json({
+      msg: "Unable to create appointment."
+    });
   }
 };
-
 
 // Get All Appointments
 export const getAppointments = async (req, res) => {
   try {
-
-    const appointments = await Appointment.find()
+    const appointmentList = await Appointment.find()
       .populate("visitorId")
       .populate("hostId");
 
-    return res.json(appointments);
+    return res.status(200).json(appointmentList);
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Fetch Appointment Error:", error);
+
+    return res.status(500).json({
+      msg: "Unable to fetch appointments."
+    });
   }
 };
 
-
-// Approve Appointment
+//Appointment approvement
 export const approveAppointment = async (req, res) => {
   try {
+    const appointmentId = req.params.id;
 
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(appointmentId);
 
     if (!appointment) {
-      return res.status(404).json({ msg: "Appointment not found" });
+      return res.status(404).json({
+        msg: "Appointment not found."
+      });
     }
 
     appointment.status = "approved";
 
     await appointment.save();
+
+    // Send approval email
     const visitor = await Visitor.findById(appointment.visitorId);
 
-if (visitor && visitor.email) {
-  await sendEmail(
-    visitor.email,
-    "Appointment Approved",
+    if (visitor) {
+
+  if (visitor.email) {
+
+    await sendEmail(
+      visitor.email,
+      "Appointment Approved",
+      `Hello ${visitor.name},
+
+      Your appointment has been approved successfully.
+      You can now visit the office.
+      Thank you.`
+    );
+
+  }
+
+  await sendSMS(
+
+    visitor.phone,
+
     `Hello ${visitor.name},
 
 Your appointment has been approved successfully.
+Please carry your visitor pass while visiting.`
 
-You can now visit the office.
-
-Thank you.`
   );
-}
 
-    return res.json({
-      msg: "Appointment approved",
+}
+    return res.status(200).json({
+      msg: "Appointment approved successfully.",
       appointment
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Approve Appointment Error:", error);
+
+    return res.status(500).json({
+      msg: "Unable to approve appointment."
+    });
+  }
+};
+// Check In Visitor
+export const checkInVisitor = async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(404).json({
+        msg: "Appointment not found."
+      });
+    }
+
+    // Prevent duplicate check-in
+    if (appointment.status === "checked-in") {
+      return res.status(400).json({
+        msg: "Visitor has already checked in."
+      });
+    }
+
+    appointment.status = "checked-in";
+    appointment.checkInTime = new Date();
+
+    await appointment.save();
+
+    return res.status(200).json({
+      msg: "Visitor checked in successfully.",
+      appointment
+    });
+
+  } catch (error) {
+    console.error("Check In Error:", error);
+
+    return res.status(500).json({
+      msg: "Unable to check in visitor."
+    });
+  }
+};
+
+
+// Check Out Visitor
+export const checkOutVisitor = async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(404).json({
+        msg: "Appointment not found."
+      });
+    }
+
+    // Visitor must check in before checking out
+    if (appointment.status !== "checked-in") {
+      return res.status(400).json({
+        msg: "Visitor has not checked in yet."
+      });
+    }
+
+    appointment.status = "checked-out";
+    appointment.checkOutTime = new Date();
+
+    await appointment.save();
+
+    return res.status(200).json({
+      msg: "Visitor checked out successfully.",
+      appointment
+    });
+
+  } catch (error) {
+    console.error("Check Out Error:", error);
+
+    return res.status(500).json({
+      msg: "Unable to check out visitor."
+    });
   }
 };

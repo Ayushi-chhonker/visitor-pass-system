@@ -1,5 +1,5 @@
 import express from "express";
-import { createAppointment,getAppointments,approveAppointment } from "../controllers/appointmentController.js";
+import { createAppointment,getAppointments,approveAppointment,checkInVisitor,checkOutVisitor } from "../controllers/appointmentController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 
@@ -9,4 +9,6 @@ router.post("/",authMiddleware,roleMiddleware("admin", "employee"),createAppoint
 router.get("/",authMiddleware,roleMiddleware("admin", "employee", "security"),getAppointments);
 
 router.put("/:id/approve",authMiddleware,roleMiddleware("admin"),approveAppointment);
+router.put("/checkin/:id", checkInVisitor);
+router.put("/checkout/:id", checkOutVisitor);
 export default router;

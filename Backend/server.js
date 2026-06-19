@@ -9,6 +9,7 @@ import appointmentRoutes from "./routes/appointmentRoutes.js";
 import passRoutes from "./routes/passRoutes.js"
 import logRoutes from "./routes/logRoutes.js";
 import path from "path";
+import preRegistrationRoutes from "./routes/preRegistrationRoutes.js"
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/appointments",appointmentRoutes);
 app.use("/api/passes", passRoutes);
 app.use("/api/logs",logRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/preRegistrations", preRegistrationRoutes)
 
 //test route
 app.get("/",(req , res)=> {

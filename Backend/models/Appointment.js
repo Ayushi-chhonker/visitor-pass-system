@@ -25,6 +25,13 @@ status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending"
+},
+checkInTime: {
+  type: Date
+},
+
+checkOutTime: {
+  type: Date
 }
 },{timestamps: true})
 

@@ -1,6 +1,7 @@
 import Pass from "../models/Pass.js";
 import QRCode from "qrcode";
 import PDFDocument from "pdfkit";
+import fs from "fs";
 
 
 // Generate Pass
@@ -59,7 +60,10 @@ export const generatePassPDF = async (req, res) => {
 
   try {
 
-    const pass = await Pass.findById(req.params.id);
+    const pass = await Pass.findById(req.params.id)
+    .populate("visitorId")
+    .populate("appointmentId");
+
 
     if (!pass) {
       return res.status(404).json({
@@ -74,24 +78,74 @@ export const generatePassPDF = async (req, res) => {
       "Content-Disposition",
       "attachment; filename=VisitorPass.pdf"
     );
-
     doc.pipe(res);
 
-    doc.fontSize(24).text("Visitor Pass", {
+// Draw outer border for badge
+  doc
+  .rect(40, 40, 520, 700)
+  .stroke();
+
+// visitor pass
+   doc .fontSize(26) .text("VISITOR PASS", 0, 60, { align: "center" });
+   doc.moveDown();
+
+   doc.fontSize(14);
+  doc.text(`Name : ${pass.visitorId.name}`, 70, 130);
+  doc.text(
+  `Email : ${pass.visitorId.email || "Not Available"}`,
+  70,
+  160
+);
+  doc.text(
+  `Phone : ${pass.visitorId.phone}`,
+  70,
+  190
+);
+  doc.text(
+  `Purpose : ${pass.visitorId.purpose}`,
+  70,
+  220
+);
+doc.text(
+  `Status : ${pass.status}`,
+  70,
+  250
+);
+doc.text(
+  `Pass ID : ${pass._id}`,
+  70,
+  280
+);
+   doc.fontSize(12);
+   doc.text("QR Code", 370, 320);
+  doc.moveDown(); 
+  const qrImage = pass.qrCode.replace(
+  /^data:image\/png;base64,/,
+  ""
+);
+
+const qrBuffer = Buffer.from(qrImage, "base64");
+doc.image(qrBuffer, 340, 150, {
+  width: 150,
+  height: 150
+});
+
+doc.fontSize(10);
+doc.text(
+  "Scan this QR code for verification",
+  320,
+  480
+);
+   doc
+  .fontSize(10)
+  .text(
+    "Please carry this pass during your visit.",
+    0,
+    720,
+    {
       align: "center"
-    });
-
-    doc.moveDown();
-
-    doc.fontSize(16).text(`Pass ID: ${pass._id}`);
-
-    doc.text(`Visitor ID: ${pass.visitorId}`);
-
-    doc.text(`Appointment ID: ${pass.appointmentId}`);
-
-    doc.moveDown();
-
-    doc.text("QR Code Generated Successfully");
+    }
+  );
 
     doc.end();
 
