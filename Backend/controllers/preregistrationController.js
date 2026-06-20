@@ -1,4 +1,7 @@
 import PreRegistration from "../models/PreRegistration.js";
+import Visitor from "../models/Visitor.js";
+import Appointment from "../models/Appointment.js";
+
 
 // Create Pre-registration
 export const createPreRegistration = async (req, res) => {
@@ -10,10 +13,11 @@ export const createPreRegistration = async (req, res) => {
       email,
       phone,
       purpose,
-      visitDate
+      visitDate,
+      hostId
     } = req.body;
 
-    if (!name || !phone || !purpose || !visitDate) {
+    if (!name || !phone || !purpose || !visitDate || !hostId ) {
       return res.status(400).json({
         msg: "Please fill all required fields"
       });
@@ -25,8 +29,8 @@ export const createPreRegistration = async (req, res) => {
       email,
       phone,
       purpose,
-      visitDate
-
+      visitDate,
+      hostId
     });
     await preRegistration.save();
     return res.status(201).json({
@@ -60,28 +64,65 @@ export const getPreRegistrations = async (req, res) => {
 export const approvePreRegistration = async (req, res) => {
 
   try {
+
     const preRegistration = await PreRegistration.findById(req.params.id);
+
     if (!preRegistration) {
+
       return res.status(404).json({
         msg: "Pre-registration not found"
       });
+
     }
 
+    // Update status
     preRegistration.status = "approved";
+
     await preRegistration.save();
-    return res.json({
-      msg: "Pre-registration approved",
-      preRegistration
+
+    // Check if visitor already exists
+    let visitor = await Visitor.findOne({
+
+      phone: preRegistration.phone
+
     });
 
+    // Create visitor if not found
+    if (!visitor) {
+
+      visitor = new Visitor({
+
+        name: preRegistration.name,
+        email: preRegistration.email,
+        phone: preRegistration.phone,
+        purpose: preRegistration.purpose
+
+      });
+
+      await visitor.save();
+
+    }
+
+    // Create appointment
+    const appointment = new Appointment({
+
+      visitorId: visitor._id,
+      hostId: preRegistration.hostId,
+      date: preRegistration.visitDate,
+      status: "pending"
+    });
+    await appointment.save();
+    return res.json({
+      msg: "Pre-registration approved successfully",
+      visitor,
+      appointment
+    });
   } catch (error) {
     return res.status(500).json({
       error: error.message
     });
   }
 };
-
-
 // Reject Pre-registration
 export const rejectPreRegistration = async (req, res) => {
   try {

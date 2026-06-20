@@ -26,6 +26,12 @@ const preRegistrationSchema = new mongoose.Schema({
     required: true
   },
 
+  hostId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true
+},
+
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
