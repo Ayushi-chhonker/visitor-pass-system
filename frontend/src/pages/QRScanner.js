@@ -26,12 +26,14 @@ function QRScanner() {
 
         const token = localStorage.getItem("token");
 
+        // Extract visitorId and appointmentId from QR
         const parts = decodedText.split(",");
 
         const visitorId = parts[0].split(":")[1];
 
         const appointmentId = parts[1].split(":")[1];
 
+        // Verify Pass
         axios.get(
           `http://localhost:5000/api/passes/verify/${visitorId}/${appointmentId}`,
           {
@@ -40,16 +42,47 @@ function QRScanner() {
             }
           }
         )
+
         .then((res) => {
 
-          console.log(res.data);
+          console.log("Pass Verified:", res.data);
 
-          alert(
-            "✅ PASS VERIFIED\n\n" +
-            "Visitor: " + res.data.visitorId.name
-          );
+          // Step 2: Check In Visitor
+          axios.put(
+            `http://localhost:5000/api/appointments/checkin/${appointmentId}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          )
+         //checkin with pass
+          .then((checkInRes) => {
+
+            console.log("Check In Success:", checkInRes.data);
+
+            alert(
+              "PASS VERIFIED\n\n" +
+              "Visitor: " +
+              res.data.visitorId.name +
+              "\n\nStatus: Checked In Successfully"
+            );
+
+          })
+
+          .catch((err) => {
+
+            if (err.response && err.response.data.msg) {
+              alert(err.response.data.msg);
+            } else {
+              alert("Visitor verification succeeded but check-in failed.");
+            }
+
+          });
 
         })
+
         .catch((err) => {
 
           if (err.response && err.response.data.msg) {
@@ -78,7 +111,14 @@ function QRScanner() {
     <div>
       <h2>QR Scanner</h2>
 
-      <div id="reader" style={{ width: "400px" }}></div>
+      <div
+        id="reader"
+        style={{
+          width: "400px",
+          margin: "20px auto"
+        }}
+      ></div>
+
     </div>
   );
 }

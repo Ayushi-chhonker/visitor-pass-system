@@ -8,6 +8,7 @@ function Dashboard() {
   const [passes, setPasses] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
 
@@ -112,6 +113,23 @@ function Dashboard() {
   <div>
 
     <h2>Dashboard</h2>
+    {user && (
+  <div
+    style={{
+      backgroundColor: "#f4f4f4",
+      padding: "15px",
+      marginBottom: "20px",
+      borderRadius: "8px",
+      border: "1px solid #ddd"
+    }}
+  >
+    <h3>Welcome, {user.name}</h3>
+
+    <p>
+      <strong>Role:</strong> {user.role}
+    </p>
+  </div>
+)}
     <div style={{ marginBottom: "20px" }}>
 
   <input

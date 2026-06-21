@@ -69,7 +69,6 @@ export const loginUser = async (req, res) => {
         msg: "No account found with this email."
       });
     }
-
     // Compare entered password with hashed password
     const isPasswordCorrect = await bcrypt.compare(
       password,
@@ -113,4 +112,26 @@ export const loginUser = async (req, res) => {
       msg: "Internal server error while logging in."
     });
   }
+};
+
+// Get all hosts (employees)
+export const getHosts = async (req, res) => {
+
+  try {
+
+    const hosts = await User.find(
+      { role: "employee" },
+      "name email"
+    );
+
+    return res.json(hosts);
+
+  } catch (error) {
+
+    return res.status(500).json({
+      error: error.message
+    });
+
+  }
+
 };

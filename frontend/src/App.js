@@ -1,16 +1,12 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Link
-} from "react-router-dom";
-
+import {BrowserRouter,Routes,Route,Link} from "react-router-dom";
 import Visitor from "./pages/Visitor.js";
 import Appointment from "./pages/Appointment.js";
 import Pass from "./pages/GeneratePass.js";
 import Dashboard from "./pages/Dashboard.js";
 import Login from "./pages/Login.js";
 import QRScanner from "./pages/QRScanner.js";
+import PreRegistration from "../src/pages/preRegistration.js";
+import PreRegistrationList from "../src/pages/preregistrationList.js"
 import "./App.css";
 
 function App() {
@@ -58,6 +54,18 @@ function App() {
 
         <br /><br />
 
+        <Link to="/preregistration">
+         Pre Registration
+        </Link>
+
+        <br /><br />
+
+        <Link to="/preregistrationlist">
+        Pre Registration Requests
+        </Link>
+
+       <br /><br />
+
         </nav>
 
         <hr />
@@ -91,7 +99,18 @@ function App() {
           path="/scanner"
           element={<QRScanner/>}
           />
+
+          <Route
+          path="/preregistration"
+          element={<PreRegistration/>}
+          />
+
+          <Route
+          path="/preregistrationlist"
+          element={<PreRegistrationList />}
+          />
         </Routes>
+
 
         <footer className="footer">
 

@@ -22,10 +22,17 @@ console.log("Response:", res.data);
 
 localStorage.setItem("token", res.data.token);
 
+localStorage.setItem(
+  "user",
+  JSON.stringify(res.data.user)
+);
+
 console.log("Saved Token:", localStorage.getItem("token"));
 
 alert("Login successful");
+
 window.location.href = "/dashboard";
+
     }catch(error){
         alert("Login failed");
         console.log(error);
