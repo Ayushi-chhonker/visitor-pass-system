@@ -18,7 +18,6 @@ The system allows visitors to pre-register, employees to manage appointments, ad
   * Admin
   * Employee
   * Security
-  * Visitor
 
 2. Visitor Management
 
@@ -166,6 +165,71 @@ npm run dev
 cd frontend
 npm start
 
+# Demo Data / Seed Data
+
+The project includes sample data for testing purposes.
+
+1. Running the Seed Script
+
+Inside bash
+cd Backend
+node seed.js
+
+2. Seeded Records
+
+The seed script creates:
+
+- Sample Users (Admin, Employee, Security)
+- Sample Visitors
+- Sample Appointments
+- Sample Passes
+These records can be used to test:
+
+* Visitor Management
+* Appointment Management
+* Pass Generation
+* QR Verification
+* Dashboard Statistics
+
+# Test User Accounts
+
+The seed script automatically creates the following accounts:
+
+| Role     | Email                                         | Password    |
+| -------- | --------------------------------------------- | ----------- |
+| Admin    | [admin@test.com](mailto:admin@test.com)       | password123 |
+| Employee | [employee@test.com](mailto:employee@test.com) | password123 |
+| Security | [security@test.com](mailto:security@test.com) | password123 |
+
+# Main API Endpoints
+
+1. Authentication
+POST /api/auth/register
+POST /api/auth/login
+
+2. Visitors
+GET /api/visitors
+POST /api/visitors
+DELETE /api/visitors/:id
+
+3. Appointments
+GET /api/appointments
+POST /api/appointments
+PUT /api/appointments/:id/approve
+PUT /api/appointments/:id/reject
+
+4. Passes
+POST /api/passes
+GET /api/passes
+GET /api/passes/pdf/:id
+GET /api/passes/verify/:visitorId/:appointmentId
+
+5. Pre-Registrations
+POST /api/preregistrations
+GET /api/preregistrations
+PUT /api/preregistrations/:id/approve
+PUT /api/preregistrations/:id/reject
+
 
 # Application Workflow
 
@@ -185,17 +249,62 @@ Check-In
    ↓
 Check-Out
 
+# Testing Report
 
-# Future Enhancements
+1. Testing Summary
 
-* OTP Verification
-* Multi-Organization Support
-* Analytics Dashboard
-* Docker Deployment
-* Cloud Hosting
+The Visitor Pass Management System was tested for authentication, visitor management, appointment handling, QR-based pass generation, check-in/check-out workflow, and reporting features.
+
+Testing was performed on all major modules including:
+
+- Authentication
+- Visitor Management
+- Appointment Management
+- QR Pass Generation
+- Check-In / Check-Out
+- Dashboard Reporting
+
+All tested features worked successfully during project evaluation.
+
+2. Test Environment
+
+* Frontend: React.js
+* Backend: Node.js, Express.js
+* Database: MongoDB
+* Authentication: JWT
+* Browser Used: Google Chrome / Mozilla Firefox
+* Operating System: Windows 10
+
+3. Challenges Faced
+
+* Implementing role-based authentication using JWT.
+* Integrating QR code generation and QR scanning functionality.
+* Managing visitor check-in and check-out using a single QR code.
+* Generating downloadable PDF visitor passes.
+* Handling email notifications during appointment approval.
+
+
+4. Result
+
+All major functionalities of the Visitor Pass Management System were tested successfully. The application correctly handles visitor registration, appointment management, QR-based pass generation, check-in/check-out operations, role-based access control, PDF generation, and reporting features.
+
+5. Learning Outcomes
+Through this project, I gained practical experience in:
+
+ React.js frontend development
+ REST API development using Express.js
+ MongoDB database operations
+ JWT authentication and authorization
+ QR code generation and verification
+ File uploads using Multer
+ PDF generation using PDFKit
+
+
 
 
 # Author
 Ayushi Chhonker
 UIET, Panjab University
-Visitor Pass Management System Assignment Project
+
+Visitor Pass Management System
+Full Stack Web Development Project

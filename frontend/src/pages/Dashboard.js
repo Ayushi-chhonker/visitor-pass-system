@@ -162,17 +162,17 @@ function Dashboard() {
     <div className="dashboard-container">
 
       <div className="dashboard-card">
-        <h3>Total Visitors</h3>
+        <h3>👥 Total Visitors</h3>
         <p>{visitors.length}</p>
       </div>
 
       <div className="dashboard-card">
-        <h3>Total Appointments</h3>
+        <h3>📅 Total Appointments</h3>
         <p>{appointments.length}</p>
       </div>
 
       <div className="dashboard-card">
-        <h3>Total Passes</h3>
+        <h3>🎫 Total Passes</h3>
         <p>{passes.length}</p>
       </div>
 
@@ -201,7 +201,11 @@ function Dashboard() {
 
         <td>{appointment.visitorId?.name}</td>
 
-        <td>{appointment.status}</td>
+        <td>
+         <span className={`status ${appointment.status}`}>
+           {appointment.status}
+         </span>
+        </td>
 
       </tr>
 

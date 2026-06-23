@@ -1,6 +1,7 @@
 import Pass from "../models/Pass.js";
 import QRCode from "qrcode";
 import PDFDocument from "pdfkit";
+import Appointment from "../models/Appointment.js";
 import fs from "fs";
 
 
@@ -161,44 +162,68 @@ doc.text(
 //verify pass
 export const verifyPass = async (req, res) => {
 
-  try {
+try {
+const { visitorId, appointmentId } = req.params;
 
-    const { visitorId, appointmentId } = req.params;
+const pass = await Pass.findOne({
+  visitorId,
+  appointmentId
+})
+.populate("visitorId")
+.populate("appointmentId");
 
-    const pass = await Pass.findOne({
-      visitorId,
-      appointmentId
-    })
-    .populate("visitorId")
-    .populate("appointmentId");
+if (!pass) {
+  return res.status(404).json({
+    msg: "Pass not found"
+  });
+}
 
-    if (!pass) {
-      return res.status(404).json({
-        msg: "Pass not found"
-      });
-    }
+const appointment = await Appointment.findById(
+  appointmentId
+);
 
-    // Check if pass is already used
-    if (pass.status === "used") {
-      return res.status(400).json({
-        msg: "Pass already used"
-      });
-    }
+if (!appointment) {
+  return res.status(404).json({
+    msg: "Appointment not found"
+  });
+}
 
-    // Mark pass as used
-    pass.status = "used";
-    pass.usedAt = new Date();
+// First scan -> Check In
+if (!appointment.checkInTime) {
 
-    await pass.save();
+  appointment.checkInTime = new Date();
 
-    res.json(pass);
+  await appointment.save();
 
-  } catch (error) {
+  return res.status(200).json({
+    msg: "Visitor Checked In Successfully",
+    appointment
+  });
+}
 
-    res.status(500).json({
-      error: error.message
-    });
+// Second scan -> Check Out
+if (!appointment.checkOutTime) {
 
-  }
+  appointment.checkOutTime = new Date();
+
+  await appointment.save();
+
+  return res.status(200).json({
+    msg: "Visitor Checked Out Successfully",
+    appointment
+  });
+}
+
+// Third scan
+return res.status(400).json({
+  msg: "Visitor already checked out"
+});
+
+} catch (error) {
+return res.status(500).json({
+  error: error.message
+});
+
+}
 
 };

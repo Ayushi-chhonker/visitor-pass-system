@@ -35,7 +35,8 @@ window.location.href = "/dashboard";
 
     }catch(error){
         alert("Login failed");
-        console.log(error);
+        console.log(error.response);
+        console.log(error.response?.data);
     }
 };
 return(

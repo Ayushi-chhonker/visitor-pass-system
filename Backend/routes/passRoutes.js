@@ -9,7 +9,7 @@ const router = express.Router();
 router.post("/",authMiddleware, generatePass);
 
 router.get("/",authMiddleware, getPasses);
-router.post("/:id/pdf", authMiddleware, roleMiddleware("admin", "security"),generatePassPDF);
+router.get("/:id/pdf", authMiddleware, roleMiddleware("admin", "security"),generatePassPDF);
 router.get("/verify/:visitorId/:appointmentId", authMiddleware, verifyPass);
 
 export default router;

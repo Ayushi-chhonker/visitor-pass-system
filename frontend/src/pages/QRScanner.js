@@ -47,39 +47,7 @@ function QRScanner() {
 
           console.log("Pass Verified:", res.data);
 
-          // Step 2: Check In Visitor
-          axios.put(
-            `http://localhost:5000/api/appointments/checkin/${appointmentId}`,
-            {},
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            }
-          )
-         //checkin with pass
-          .then((checkInRes) => {
-
-            console.log("Check In Success:", checkInRes.data);
-
-            alert(
-              "PASS VERIFIED\n\n" +
-              "Visitor: " +
-              res.data.visitorId.name +
-              "\n\nStatus: Checked In Successfully"
-            );
-
-          })
-
-          .catch((err) => {
-
-            if (err.response && err.response.data.msg) {
-              alert(err.response.data.msg);
-            } else {
-              alert("Visitor verification succeeded but check-in failed.");
-            }
-
-          });
+          alert(res.data.msg);
 
         })
 

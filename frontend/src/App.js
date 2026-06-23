@@ -7,9 +7,24 @@ import Login from "./pages/Login.js";
 import QRScanner from "./pages/QRScanner.js";
 import PreRegistration from "../src/pages/preRegistration.js";
 import PreRegistrationList from "../src/pages/preregistrationList.js"
+import ProtectedRoute from "./pages/protectRoute.js";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 function App() {
+  const user = JSON.parse(
+  localStorage.getItem("user")
+);
+
+const role = user?.role;
+
+const handleLogout = () => {
+
+  localStorage.clear();
+
+  window.location.href = "/login";
+
+};
 
   return (
 
@@ -21,9 +36,15 @@ function App() {
 
         <nav className="navbar">
 
-          <Link to="/dashboard">
-            Dashboard
-          </Link>
+          {role === "admin" && (
+          <>
+             <Link to="/dashboard">
+               Dashboard
+             </Link>
+
+          <br /><br />
+          </>
+          )}
 
           <br /><br />
 
@@ -33,9 +54,15 @@ function App() {
 
           <br /><br />
 
-          <Link to="/visitor">
-            Add Visitor
-          </Link>
+          {(role === "admin" || role === "employee") && (
+          <>
+            <Link to="/visitor">
+               Add Visitor
+            </Link>
+
+          <br /><br />
+          </>
+      )}
 
           <br /><br />
 
@@ -48,23 +75,37 @@ function App() {
           <Link to="/pass">
             Generate Pass
           </Link>
+
+         {role === "security" && (
+          <>
           <Link to="/scanner">
-          QR Scanner
-         </Link>
+              QR Scanner
+          </Link>
 
-        <br /><br />
+           <br /><br />
+          </>
+        )}
 
-        <Link to="/preregistration">
+        {(role === "admin"|| role === "employee") && (
+          <>
+          <Link to="/preregistration">
          Pre Registration
         </Link>
 
         <br /><br />
+          </>
+        )}
 
         <Link to="/preregistrationlist">
         Pre Registration Requests
         </Link>
 
        <br /><br />
+       <button onClick={handleLogout}>
+         Logout
+      </button>
+
+      <br /><br />
 
         </nav>
 
@@ -74,36 +115,59 @@ function App() {
 
           <Route
           path="/dashboard"
-          element={<Dashboard />}
+          element={
+          <ProtectedRoute>
+          <Dashboard />
+          </ProtectedRoute>
+          }
           />
           <Route
            path="/login" 
            element={<Login />}
            />
-
           <Route
           path="/visitor"
-          element={<Visitor />}
+          element={
+          <ProtectedRoute>
+          <Visitor />
+          </ProtectedRoute>
+          }
           />
+          
+        <Route
+        path="/appointment"
+        element={
+        <ProtectedRoute>
+          <Appointment />
+        </ProtectedRoute>
+        }
+       />
 
-          <Route
-            path="/appointment"
-            element={<Appointment />}
-          />
+      <Route
+        path="/pass"
+        element={
+          <ProtectedRoute>
+          <Pass />
+          </ProtectedRoute>
+        }
+      />
+         <Route
+         path="/scanner"
+        element={
+         <ProtectedRoute>
+         <QRScanner />
+         </ProtectedRoute>
+        }
+        />
 
-          <Route
-            path="/pass"
-            element={<Pass />}
-          />
-          <Route
-          path="/scanner"
-          element={<QRScanner/>}
-          />
-
-          <Route
-          path="/preregistration"
-          element={<PreRegistration/>}
-          />
+        <Route
+        path="/preregistration"
+        element={
+        <ProtectedRoute>
+        <PreRegistration />
+        </ProtectedRoute>
+        }
+       />
 
           <Route
           path="/preregistrationlist"
@@ -112,13 +176,11 @@ function App() {
         </Routes>
 
 
-        <footer className="footer">
-
-       <p> Visitor Pass Management System © 2026</p>
-
-       </footer>
-
-      </div>
+      <footer className="footer">
+     <p>Visitor Pass Management System © 2026 </p>
+     <p>Developed by Ayushi Chhonker </p>
+</footer>
+    </div>
 
     </BrowserRouter>
   );
