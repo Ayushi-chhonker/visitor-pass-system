@@ -7,6 +7,7 @@ import Login from "./pages/Login.js";
 import QRScanner from "./pages/QRScanner.js";
 import PreRegistration from "../src/pages/preRegistration.js";
 import PreRegistrationList from "../src/pages/preregistrationList.js"
+import AppointmentApproval from "./pages/appointmentApproval.js";
 import ProtectedRoute from "./pages/protectRoute.js";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
@@ -173,6 +174,12 @@ const handleLogout = () => {
           path="/preregistrationlist"
           element={<PreRegistrationList />}
           />
+ 
+           <Route
+           path="/appointment-approval"
+           element={<AppointmentApproval />}
+          />
+
         </Routes>
 
 

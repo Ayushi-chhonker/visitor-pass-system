@@ -92,20 +92,35 @@ function Dashboard() {
   const blob = new Blob([csvContent], {
     type: "text/csv;charset=utf-8;"
   });
-
   const url = window.URL.createObjectURL(blob);
-
   const link = document.createElement("a");
-
   link.href = url;
-
   link.setAttribute("download", "appointments.csv");
-
   document.body.appendChild(link);
-
   link.click();
-
   document.body.removeChild(link);
+};
+
+const approveAppointment = async (id) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `http://localhost:5000/api/appointments/${id}/approve`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    alert("Appointment Approved");
+    fetchData();
+  } catch (error) {
+    alert(
+      error.response?.data?.msg ||
+      "Approval failed"
+    );
+  }
 };
 
   return (
@@ -180,38 +195,37 @@ function Dashboard() {
     <h3>Appointments</h3>
 
 <table border="1">
-
   <thead>
-
     <tr>
+  <th>Visitor</th>
+  <th>Status</th>
+  <th>Action</th>
+  </tr>
+  </thead>
+<tbody>
 
-      <th>Visitor</th>
-
-      <th>Status</th>
-
+  {filteredAppointments.map((appointment) => (
+    <tr key={appointment._id}>
+      <td>{appointment.visitorId?.name}</td>
+      <td>
+        <span className={`status ${appointment.status}`}>
+          {appointment.status}
+        </span>
+      </td>
+      <td>
+        {
+          appointment.status === "pending" ? (
+            <button onClick={() => approveAppointment(appointment._id)}>
+              Approve
+            </button>) : ("Approved")
+        }
+      </td>
     </tr>
 
-  </thead>
+  ))}
 
-  <tbody>
+</tbody>
 
-    {filteredAppointments.map((appointment) => (
-
-      <tr key={appointment._id}>
-
-        <td>{appointment.visitorId?.name}</td>
-
-        <td>
-         <span className={`status ${appointment.status}`}>
-           {appointment.status}
-         </span>
-        </td>
-
-      </tr>
-
-    ))}
-
-  </tbody>
 
 </table>
 
