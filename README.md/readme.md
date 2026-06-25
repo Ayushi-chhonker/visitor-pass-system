@@ -1,5 +1,8 @@
 # Visitor Pass Management System
 
+GitHub Repository:
+https://github.com/Ayushi-chhonker/visitor-pass-system
+
 1. Project Overview
 
 The Visitor Pass Management System is a web-based application designed to manage visitor entry, appointments, QR-based passes, and visitor tracking within an organization.
@@ -18,6 +21,8 @@ The system allows visitors to pre-register, employees to manage appointments, ad
   * Admin
   * Employee
   * Security
+  * visitor
+
 
 2. Visitor Management
 
@@ -142,13 +147,9 @@ Create a `.env` file inside the Backend folder.
 
 .env
 MONGO_URI=your_mongodb_connection_string
-
 JWT_SECRET=your_jwt_secret
-
 EMAIL_USER=your_email
-
 EMAIL_PASS=your_email_password
-
 PORT=5000
 
 # Running the Application
@@ -195,11 +196,11 @@ These records can be used to test:
 
 The seed script automatically creates the following accounts:
 
-| Role     | Email                                         | Password    |
-| -------- | --------------------------------------------- | ----------- |
-| Admin    | [admin@test.com](mailto:admin@test.com)       | password123 |
-| Employee | [employee@test.com](mailto:employee@test.com) | password123 |
-| Security | [security@test.com](mailto:security@test.com) | password123 |
+ Role      Email                                          Password     
+ Admin     [admin@test.com](mailto:admin@test.com)        password123 
+ Employee  [employee@test.com](mailto:employee@test.com)  password123 
+ Security  [security@test.com](mailto:security@test.com)  password123 
+Visitor    [visitor@test.com](mailto:visitor@test.com)    password123 
 
 # Main API Endpoints
 
@@ -223,6 +224,8 @@ POST /api/passes
 GET /api/passes
 GET /api/passes/pdf/:id
 GET /api/passes/verify/:visitorId/:appointmentId
+PUT /api/appointments/checkin/:id
+PUT /api/appointments/checkout/:id
 
 5. Pre-Registrations
 POST /api/preregistrations
