@@ -5,98 +5,116 @@ import {
   validateRequired
 } from "../utils/validators.js";
 
-// Create a new visitor
+/*
+Visitor Controller
+This controller is responsible for:
+ Adding a new visitor, Fetching all visitors, Deleting a visitor
+*/
+
+// Add a New Visitor
+//It Handles the request to register a new visitor
 export const createVisitor = async (req, res) => {
   try {
+    // Read visitor details received from frontend
     const { name, phone, email, purpose } = req.body;
 
-    // Check required fields
+    // Name, phone and purpose are compulsory
     if (!validateRequired(name, phone, purpose)) {
+      //if all details is not fill b visitor then throw msg "fill all required details"
       return res.status(400).json({
         msg: "Please fill all required fields."
       });
     }
 
-    // Validate email only if provided
-    if (email && !validateEmail(email)) {
-      return res.status(400).json({
-        msg: "Please enter a valid email address."
-      });
-    }
-
-    // Validate phone number
+    // Validate phone number for correct format of phone number
     if (!validatePhone(phone)) {
+      //if there is some mistake in format of phone number like digit is not 10 or anything else then throw this msg on screen
       return res.status(400).json({
-        msg: "Phone number should contain exactly 10 digits."
+        msg: "Please enter a valid 10-digit phone number."
       });
     }
 
-    // Get uploaded photo if available
-    const uploadedPhoto = req.file ? req.file.filename : null;
+    // Email is optional, but if entered it must be valid
+    if (email && !validateEmail(email)) {
+      //if entered email is not correct then throw msg on screen that "invalid email"
+      return res.status(400).json({
+        msg: "Invalid email address."
+      });
+    }
 
-    // Create visitor object
-    const newVisitor = new Visitor({
-      name,
-      phone,
-      email,
-      purpose,
-      photo: uploadedPhoto
+    // If the user uploads a photo, store only its filename.
+   // Otherwise, the photo field will remain null.
+    let photoName = null;
+    if (req.file) {
+      photoName = req.file.filename;
+    }
+
+    // Create visitor document for adding new visitor details like name,phone number,email , purpose and photo
+    const visitor = new Visitor({
+      name,phone,email,purpose,photo: photoName
     });
 
-    await newVisitor.save();
-
+    // Save visitor details into database
+    await visitor.save();
+//after saving data in mongodb give alert on screen that visitor addded successfully
     return res.status(201).json({
       msg: "Visitor added successfully.",
-      visitor: newVisitor
+      visitor
     });
 
-  } catch (error) {
-    console.error("Create Visitor Error:", error);
-
+  } catch (err) {
+    // Log the error so it can be debugged later.
+    console.log("Error while adding visitor:", err);
+//screen pr msg response return kro that "server error"
     return res.status(500).json({
-      msg: "Unable to create visitor."
+      msg: "Server Error"
     });
-  }
-};
+  }};
 
-// Get all visitors
+// Get All Visitors
+// this function handles the request of get visitor
 export const getVisitors = async (req, res) => {
   try {
-    const visitorList = await Visitor.find();
 
-    return res.status(200).json(visitorList);
+    // Fetch every visitor stored in database
+    const visitors = await Visitor.find();
+// return as a response visitors in json form
+    return res.status(200).json(visitors);
 
-  } catch (error) {
-    console.error("Fetch Visitor Error:", error);
-
+  } catch (err) {
+// Log the error so it can be debugged later
+    console.log("Unable to fetch visitors:", err);
+// screen pr response return kro that "server error"
     return res.status(500).json({
-      msg: "Unable to fetch visitor records."
+      msg: "Server Error"
     });
-  }
-};
+  }};
 
-// Delete visitor
+// Delete Visitor
+//this function handles the request of deleting the exisitng visitor
 export const deleteVisitor = async (req, res) => {
   try {
-    const visitorId = req.params.id;
+    // Get visitor id from URL
+    const { id } = req.params;
 
-    const deletedVisitor = await Visitor.findByIdAndDelete(visitorId);
+    // Delete visitor using MongoDB id and findByTdAndDelete(id) means visitor ko uski id se find kro and then delete kro
+    const visitor = await Visitor.findByIdAndDelete(id);
 
-    if (!deletedVisitor) {
+    // if Visitor does not exist then response return krne k liye ki visitor not found on screen
+    if (!visitor) {
       return res.status(404).json({
-        msg: "Visitor record not found."
+        msg: "Visitor not found."
       });
     }
-
+// if visitor find successfully by its id then nd delete successfully then throw msg on screen that visitor deleted successfully
     return res.status(200).json({
       msg: "Visitor deleted successfully."
     });
 
-  } catch (error) {
-    console.error("Delete Visitor Error:", error);
-
+  } catch (err) {
+// Log the error so it can be debugged later
+    console.log("Delete Visitor Error:", err);
     return res.status(500).json({
-      msg: "Unable to delete visitor."
+      msg: "Server Error"
     });
-  }
-};
+  }};

@@ -9,13 +9,9 @@ import bcrypt from "bcryptjs";
 dotenv.config();
 
 mongoose.connect(process.env.MONGO_URI)
-
 .then(() => console.log("MongoDB Connected"))
-
 .catch((err) => console.log(err));
-
 const seedData = async () => {
-
   try {
 
     // Clear old data
@@ -102,14 +98,9 @@ const visitor2 = await Visitor.create({
     console.log("Password: password123");
 
     process.exit();
-
   } catch (error) {
-
     console.log(error);
-
     process.exit(1);
-
   }
 };
-
 seedData();

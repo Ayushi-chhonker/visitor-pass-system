@@ -2,136 +2,137 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-//user registration
+// Register a New User
 export const registerUser = async (req, res) => {
   try {
+    // Get user details from the request body
     const { name, email, password, role } = req.body;
 
-    // Check if all required fields are provided
+    // Check if any required field is missing
     if (!name || !email || !password || !role) {
       return res.status(400).json({
-        msg: "Please fill all required fields."
+        msg: "All fields are required."
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check whether this email is already registered or not
+    const userFound = await User.findOne({ email });
 
-    if (existingUser) {
+    //if email registered found then give msg that email already registered
+    if (userFound){
       return res.status(400).json({
-        msg: "User is already registered with this email."
+        msg: "Email is already registered."
       });
     }
 
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Encrypt the password before storing it in the database
+    const encryptedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role
-    });
+    // Create a new user document
+    const user = new User({name, email, password: encryptedPassword,role });
 
-    await newUser.save();
-
+    // Save the user in MongoDB
+    await user.save();
+    //return alert on screen that user succesfullly registered
     return res.status(201).json({
-      msg: "Registration successful."
+      msg: "User registered successfully."
     });
 
-  } catch (error) {
-    console.error("Registration Error:", error);
+  } catch (err) {
+    //logs the error for debugging
+    console.log("Error while registering user:", err);
 
+//screen pr message return kro as a response that something went wrong
     return res.status(500).json({
-      msg: "Unable to register user due to an internal server error."
-    });
+      msg: "Something went wrong." });
   }
 };
 
 // Login User
+//login function define here as well as export use for export this function to main file
 export const loginUser = async (req, res) => {
   try {
+    //login credentials read k liye
     const { email, password } = req.body;
 
-    // Validate input
+    // Check if user has entered both fields
     if (!email || !password) {
+      // if not any single field is present then return alert that please enter email and password
       return res.status(400).json({
-        msg: "Email and password are required."
+        msg: "Please enter email and password."
       });
     }
 
-    // Find user by email
-    const existingUser = await User.findOne({ email });
+    // Find user using email
+    const user = await User.findOne({ email });
 
-    if (!existingUser) {
+    // If email is not found
+    if (!user) {
       return res.status(404).json({
-        msg: "No account found with this email."
-      });
+        msg: "User does not exist."});
     }
-    // Compare entered password with hashed password
-    const isPasswordCorrect = await bcrypt.compare(
+
+    // bcrypt function Compare entered password with encrypted password so we define passwordMatched function here
+    const passwordMatched = await bcrypt.compare(
       password,
-      existingUser.password
-    );
+      user.password);
 
-    if (!isPasswordCorrect) {
+    // If Password is incorrect
+    if (!passwordMatched) {
+      //return reponse msg on screen that invalid password
       return res.status(401).json({
-        msg: "Incorrect password."
+        msg: "Invalid password."
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: existingUser._id,
-        role: existingUser.role
-      },
+    // Create JWT token
+    const authToken = jwt.sign(
+      {id: user._id,
+       role: user.role},
       process.env.JWT_SECRET,
-      {
-        expiresIn: "1d"
-      }
+      { expiresIn: "1d"}
     );
 
-    // Send only required user details
-    return res.status(200).json({
+    // Return token and user information
+    res.status(200).json({
+      //message comes on screen as response tat login successfull
       msg: "Login successful.",
-      token,
+      token: authToken,
       user: {
-        id: existingUser._id,
-        name: existingUser.name,
-        email: existingUser.email,
-        role: existingUser.role
+        //after login successfull user ki sari details show hongi like uski userId, name,email and password
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
       }
     });
-
-  } catch (error) {
-    console.error("Login Error:", error);
-
-    return res.status(500).json({
-      msg: "Internal server error while logging in."
+//error find krne k liye or fir us error ko logs m show krne k liye below code
+  }catch (err) {
+    console.log("Login Error:", err);
+//also send alert on screen in message form that unable to login
+    res.status(500).json({
+      msg: "Unable to login."
     });
-  }
-};
+  }};
 
-// Get all hosts (employees)
+// Get All Employees
+// getHosts function define here
 export const getHosts = async (req, res) => {
 
   try {
-
-    const hosts = await User.find(
+    // Fetch all users whose role is employee
+    const employeeList = await User.find(
       { role: "employee" },
       "name email"
     );
-
-    return res.json(hosts);
-
-  } catch (error) {
-
-    return res.status(500).json({
-      error: error.message
+//json form m employee list response dena
+    res.status(200).json(employeeList);
+//for error finding
+  } catch (err) {
+//if any error takes place while employee list findinf then put that error in logs so that we can see where is problem inside code
+    console.log(err);
+// and logs m error print krne k saath saath screen pr msg show krne kro "unable to fetch employee"
+    res.status(500).json({
+      msg: "Unable to fetch employees."
     });
-
-  }
-
-};
+  }};

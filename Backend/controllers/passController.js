@@ -2,228 +2,262 @@ import Pass from "../models/Pass.js";
 import QRCode from "qrcode";
 import PDFDocument from "pdfkit";
 import Appointment from "../models/Appointment.js";
-import fs from "fs";
 
+/*
+Pass Controller
+This controller is responsible for:
+ Generating visitor passes, Creating QR codes, Downloading visitor pass as PDF, Verifying QR code at entry/exit
+*/
 
-// Generate Pass
+// Generate Pass handle request of generating new pass
 export const generatePass = async (req, res) => {
-
   try {
-
+    // Get required details from frontend
     const { visitorId, appointmentId } = req.body;
 
-    // QR data
-    const qrData = `Visitor:${visitorId},Appointment:${appointmentId}`;
+     // Both IDs are required to generate a pass
+    if (!visitorId || !appointmentId) {
+    return res.status(400).json({ msg: "Visitor ID and Appointment ID are required." });
+}
 
-    // Generate QR image
-    const qrCodeImage = await QRCode.toDataURL(qrData);
+    // Combine visitor ID and appointment ID.
+   // This information will be stored inside the QR code.
+    const qrContent = `Visitor:${visitorId},Appointment:${appointmentId}`;
 
-    // Save pass
-    const pass = new Pass({
+  // Convert the QR data into a Base64 image.
+    const qrImage = await QRCode.toDataURL(qrData);
+
+    // Create a new visitor pass and save it in MongoDB.
+    const visitorPass = new Pass({
       visitorId,
       appointmentId,
       qrCode: qrCodeImage
     });
-
     await pass.save();
-
+// return on screen qr pass
     return res.status(201).json(pass);
 
   } catch (error) {
-
+    // Print actual error in terminal for debugging
+    console.log("Generate Pass Error:", err)
     return res.status(500).json({
       error: error.message
     });
-
-  }
-};
+  }};
 
 
-// GET ALL PASSES
+// this function handles request of get all passes
 export const getPasses = async (req, res) => {
-
   try {
-
+     // Fetch every generated pass from database
     const passes = await Pass.find();
-
     return res.json(passes);
 
   } catch (error) {
-
+//if something went wrong then put that error on the screen
     return res.status(500).json({
       error: error.message
     });
 
   }
 };
-// Generate PDF Pass
+// Generate Visitor-pass pdf
 export const generatePassPDF = async (req, res) => {
-
   try {
 
-    const pass = await Pass.findById(req.params.id)
-    .populate("visitorId")
-    .populate("appointmentId");
+    // Get pass Id from the URL
+    const { id } = req.params;
 
+    // Fetch pass details along with visitor and appointment information
+    const visitorPass = await Pass.findById(id)
+      .populate("visitorId")
+      .populate("appointmentId");
 
-    if (!pass) {
+    // Stop if pass is not found
+    if (!visitorPass) {
       return res.status(404).json({
-        msg: "Pass not found"
+        msg: "Visitor pass not found."
       });
     }
 
-    const doc = new PDFDocument();
+    // Create a new PDF document
+    const pdf = new PDFDocument();
 
+    // Set response headers so the browser downloads the PDF
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=VisitorPass.pdf"
+    res.setHeader("Content-Disposition","attachment; filename=VisitorPass.pdf"
     );
-    doc.pipe(res);
 
-// Draw outer border for badge
-  doc
-  .rect(40, 40, 520, 700)
-  .stroke();
+    // Send PDF directly in the response
+    pdf.pipe(res);
 
-// visitor pass
-   doc .fontSize(26) .text("VISITOR PASS", 0, 60, { align: "center" });
-   doc.moveDown();
+    // Draw Outer Border
+    // Create a border so that the pass looks like an ID card
+    pdf
+      .rect(40, 40, 520, 700)
+      .stroke();
 
-   doc.fontSize(14);
-  doc.text(`Name : ${pass.visitorId.name}`, 70, 130);
-  doc.text(
-  `Email : ${pass.visitorId.email || "Not Available"}`,
-  70,
-  160
-);
-  doc.text(
-  `Phone : ${pass.visitorId.phone}`,
-  70,
-  190
-);
-  doc.text(
-  `Purpose : ${pass.visitorId.purpose}`,
-  70,
-  220
-);
-doc.text(
-  `Status : ${pass.status}`,
-  70,
-  250
-);
-doc.text(
-  `Pass ID : ${pass._id}`,
-  70,
-  280
-);
-   doc.fontSize(12);
-   doc.text("QR Code", 370, 320);
-  doc.moveDown(); 
-  const qrImage = pass.qrCode.replace(
-  /^data:image\/png;base64,/,
-  ""
-);
+    // Heading
+    pdf
+      .fontSize(26)
+      .text("VISITOR PASS", 0, 60, {
+        align: "center"
+      });
 
-const qrBuffer = Buffer.from(qrImage, "base64");
-doc.image(qrBuffer, 340, 150, {
-  width: 150,
-  height: 150
-});
+    // Visitor Details
+    pdf.fontSize(14);
+    pdf.text(
+      `Name : ${visitorPass.visitorId.name}`,
+      70,130
+    );
 
-doc.fontSize(10);
-doc.text(
-  "Scan this QR code for verification",
-  320,
-  480
-);
-   doc
-  .fontSize(10)
-  .text(
-    "Please carry this pass during your visit.",
-    0,
-    720,
-    {
-      align: "center"
-    }
-  );
+    pdf.text(
+      `Email : ${visitorPass.visitorId.email || "Not Available"}`,
+      70,160
+    );
 
-    doc.end();
+    pdf.text(
+      `Phone : ${visitorPass.visitorId.phone}`,
+      70,190
+    );
 
-  } catch (error) {
+    pdf.text(
+      `Purpose : ${visitorPass.visitorId.purpose}`,
+      70,220
+    );
 
-    res.status(500).json({
-      error: error.message
+    pdf.text(
+      `Status : ${visitorPass.status}`,
+      70,250
+    );
+
+    pdf.text(
+      `Pass ID : ${visitorPass._id}`,
+      70, 280
+    );
+
+    // QR Code
+    pdf.fontSize(12);
+    pdf.text("QR Code", 385, 320);
+
+    // QR code is stored in Base64 format.
+    // Remove the extra prefix before converting it into an image.
+    const qrData = visitorPass.qrCode.replace(
+      /^data:image\/png;base64,/,
+      ""
+    );
+
+    // Convert Base64 data into Buffer
+    const qrBuffer = Buffer.from(
+      qrData, "base64"
+    );
+
+    // Place QR image inside the PDF
+    pdf.image(qrBuffer, 340, 150, {
+      width: 150, height: 150
     });
 
+    // Instruction below QR
+    pdf
+      .fontSize(10)
+      .text(
+        "Scan this QR code for verification.",
+        320,480
+      );
+
+    // Footer
+    pdf
+      .fontSize(10)
+      .text(
+        "Please carry this pass during your visit.",
+        0,720,
+        {align: "center"}
+      );
+
+    // Finish PDF generation
+    pdf.end();
+  } catch (err) {
+// show the error in logs for debugging later
+    console.log("Generate PDF Error:", err);
+    return res.status(500).json({
+      msg: "Server Error"
+    });
   }
-
 };
-//verify pass
+
+// Verify Visitor Pass
 export const verifyPass = async (req, res) => {
+  try {
 
-try {
-const { visitorId, appointmentId } = req.params;
+    // Get visitor ID and appointment ID from URL
+    const { visitorId, appointmentId } = req.params;
 
-const pass = await Pass.findOne({
-  visitorId,
-  appointmentId
-})
-.populate("visitorId")
-.populate("appointmentId");
+    // Find the visitor pass using visitor ID and appointment ID
+    const visitorPass = await Pass.findOne({
+      visitorId,appointmentId
+    })
+      .populate("visitorId")
+      .populate("appointmentId");
 
-if (!pass) {
-  return res.status(404).json({
-    msg: "Pass not found"
-  });
-}
+    // If Pass not found
+    if (!visitorPass) {
+      return res.status(404).json({
+        msg: "Visitor pass not found."
+      });
+    }
 
-const appointment = await Appointment.findById(
-  appointmentId
-);
+    // Get appointment details
+    const appointment = await Appointment.findById(appointmentId);
 
-if (!appointment) {
-  return res.status(404).json({
-    msg: "Appointment not found"
-  });
-}
+    // Check whether appointment exists
+    if (!appointment) {
+      //If not exist then return response this
+      return res.status(404).json({
+        msg: "Appointment not found."
+      });
+    }
 
-// First scan -> Check In
-if (!appointment.checkInTime) {
+    /*
+      QR Verification Flow
+      First Scan  = Check-In
+      Second Scan = Check-Out
+      Third Scan  = Already Checked Out
+    */
 
-  appointment.checkInTime = new Date();
+    // Visitor enters the office for the first time
+    if (!appointment.checkInTime) {
+      appointment.checkInTime = new Date();
+// save checkin time in mongodb
+      await appointment.save();
+//return response as successfully checked-in
+      return res.status(200).json({
+        msg: "Visitor checked in successfully.",
+        appointment
+      });
+    }
 
-  await appointment.save();
+    // Visitor leaves the office
+    if (!appointment.checkOutTime) {
+      appointment.checkOutTime = new Date();
+// save heck-out time in mongodb database
+      await appointment.save();
+// return response on screen checkout successfully
+      return res.status(200).json({
+        msg: "Visitor checked out successfully.",
+        appointment
+      });
+    }
 
-  return res.status(200).json({
-    msg: "Visitor Checked In Successfully",
-    appointment
-  });
-}
+    // QR has already been used for both check-in and check-out
+    return res.status(400).json({
+      msg: "Visitor has already checked out."
+    });
 
-// Second scan -> Check Out
-if (!appointment.checkOutTime) {
-
-  appointment.checkOutTime = new Date();
-
-  await appointment.save();
-
-  return res.status(200).json({
-    msg: "Visitor Checked Out Successfully",
-    appointment
-  });
-}
-
-// Third scan
-return res.status(400).json({
-  msg: "Visitor already checked out"
-});
-
-} catch (error) {
-return res.status(500).json({
-  error: error.message
-});
-
-}
-
+  } catch (err) {
+    // Log error for debugging
+    console.log("Verify Pass Error:", err);
+    return res.status(500).json({
+      msg: "Server Error"
+    });
+  }
 };
