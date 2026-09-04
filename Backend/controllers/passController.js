@@ -12,10 +12,8 @@ This controller is responsible for:
 // Generate Pass handle request of generating new pass
 export const generatePass = async (req, res) => {
   try {
-    // Get required details from frontend
     const { visitorId, appointmentId } = req.body;
 
-     // Both IDs are required to generate a pass
     if (!visitorId || !appointmentId) {
     return res.status(400).json({ msg: "Visitor ID and Appointment ID are required." });
 }
@@ -25,48 +23,40 @@ export const generatePass = async (req, res) => {
     const qrContent = `Visitor:${visitorId},Appointment:${appointmentId}`;
 
   // Convert the QR data into a Base64 image.
-    const qrImage = await QRCode.toDataURL(qrData);
+    const qrImage = await QRCode.toDataURL(qrContent);
 
     // Create a new visitor pass and save it in MongoDB.
     const visitorPass = new Pass({
       visitorId,
       appointmentId,
-      qrCode: qrCodeImage
+      qrCode: qrImage
     });
-    await pass.save();
-// return on screen qr pass
-    return res.status(201).json(pass);
+    await visitorPass.save();
+    return res.status(201).json(visitorPass);
 
   } catch (error) {
-    // Print actual error in terminal for debugging
-    console.log("Generate Pass Error:", err)
+    console.log("Generate Pass Error:", error)
     return res.status(500).json({
       error: error.message
     });
   }};
 
-
 // this function handles request of get all passes
 export const getPasses = async (req, res) => {
   try {
-     // Fetch every generated pass from database
     const passes = await Pass.find();
     return res.json(passes);
 
   } catch (error) {
-//if something went wrong then put that error on the screen
     return res.status(500).json({
       error: error.message
     });
-
   }
 };
+
 // Generate Visitor-pass pdf
 export const generatePassPDF = async (req, res) => {
-  try {
-
-    // Get pass Id from the URL
-    const { id } = req.params;
+  try { const { id } = req.params;
 
     // Fetch pass details along with visitor and appointment information
     const visitorPass = await Pass.findById(id)
@@ -76,6 +66,7 @@ export const generatePassPDF = async (req, res) => {
     // Stop if pass is not found
     if (!visitorPass) {
       return res.status(404).json({
+        success: false,
         msg: "Visitor pass not found."
       });
     }
@@ -91,8 +82,7 @@ export const generatePassPDF = async (req, res) => {
     // Send PDF directly in the response
     pdf.pipe(res);
 
-    // Draw Outer Border
-    // Create a border so that the pass looks like an ID card
+    // Draw Outer Border Create a border so that the pass looks like an ID card
     pdf
       .rect(40, 40, 520, 700)
       .stroke();
@@ -148,9 +138,7 @@ export const generatePassPDF = async (req, res) => {
     );
 
     // Convert Base64 data into Buffer
-    const qrBuffer = Buffer.from(
-      qrData, "base64"
-    );
+    const qrBuffer = Buffer.from( qrData, "base64" );
 
     // Place QR image inside the PDF
     pdf.image(qrBuffer, 340, 150, {
@@ -177,7 +165,6 @@ export const generatePassPDF = async (req, res) => {
     // Finish PDF generation
     pdf.end();
   } catch (err) {
-// show the error in logs for debugging later
     console.log("Generate PDF Error:", err);
     return res.status(500).json({
       msg: "Server Error"
@@ -188,8 +175,6 @@ export const generatePassPDF = async (req, res) => {
 // Verify Visitor Pass
 export const verifyPass = async (req, res) => {
   try {
-
-    // Get visitor ID and appointment ID from URL
     const { visitorId, appointmentId } = req.params;
 
     // Find the visitor pass using visitor ID and appointment ID
@@ -199,7 +184,7 @@ export const verifyPass = async (req, res) => {
       .populate("visitorId")
       .populate("appointmentId");
 
-    // If Pass not found
+      // if visitor pass not found
     if (!visitorPass) {
       return res.status(404).json({
         msg: "Visitor pass not found."
@@ -211,7 +196,6 @@ export const verifyPass = async (req, res) => {
 
     // Check whether appointment exists
     if (!appointment) {
-      //If not exist then return response this
       return res.status(404).json({
         msg: "Appointment not found."
       });
@@ -227,11 +211,11 @@ export const verifyPass = async (req, res) => {
     // Visitor enters the office for the first time
     if (!appointment.checkInTime) {
       appointment.checkInTime = new Date();
-// save checkin time in mongodb
       await appointment.save();
 //return response as successfully checked-in
       return res.status(200).json({
         msg: "Visitor checked in successfully.",
+        success: true,
         appointment
       });
     }
@@ -239,11 +223,11 @@ export const verifyPass = async (req, res) => {
     // Visitor leaves the office
     if (!appointment.checkOutTime) {
       appointment.checkOutTime = new Date();
-// save heck-out time in mongodb database
       await appointment.save();
 // return response on screen checkout successfully
       return res.status(200).json({
         msg: "Visitor checked out successfully.",
+        success: true,
         appointment
       });
     }
@@ -254,7 +238,6 @@ export const verifyPass = async (req, res) => {
     });
 
   } catch (err) {
-    // Log error for debugging
     console.log("Verify Pass Error:", err);
     return res.status(500).json({
       msg: "Server Error"

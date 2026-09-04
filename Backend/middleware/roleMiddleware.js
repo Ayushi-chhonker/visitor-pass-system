@@ -24,7 +24,6 @@ const roleMiddleware = (...allowedRoles) => {
 
     // Check whether the user's role is allowed to access the requested route.
     if (!allowedRoles.includes(req.user.role)) {
-
       return res.status(403).json({
         msg: "Access denied. You do not have permission to perform this action."
       });

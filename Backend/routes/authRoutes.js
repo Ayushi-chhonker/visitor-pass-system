@@ -11,15 +11,11 @@ Available Routes:
 // Create Express Router
 const router = express.Router();
 
-// Register a New User
-// Creates a new user account after validating the details.
+// Register a New User, Creates a new user account after validating the details.
 router.post("/register", registerUser);
-// User Login
-// Authenticates the user and returns a JWT token.
+// User Login,Authenticates the user and returns a JWT token.
 router.post("/login", loginUser);
-// Get All Hosts (Employees)
-// Returns the list of employees who can act as hosts
-// while booking appointments.
+// Get All Hosts (Employees) Returns the list of employees who can act as hosts while booking appointments.
 router.get("/hosts", getHosts);
 
 export default router;

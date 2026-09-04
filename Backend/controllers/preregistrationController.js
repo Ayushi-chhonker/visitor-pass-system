@@ -5,10 +5,7 @@ import Appointment from "../models/Appointment.js";
 /*
 Pre-Registration Controller
 This controller is responsible for:
-
-Creating a pre-registration request.
-Viewing all pre-registration requests.
-Approving a request and creating visitor & appointment.
+Creating a pre-registration request,Viewing all pre-registration requests,Approving a request and creating visitor & appointment.
 Rejecting a pre-registration request.
 */
 
@@ -16,13 +13,12 @@ Rejecting a pre-registration request.
 // Create Pre-Registration
 export const createPreRegistration = async (req, res) => {
   try {
-
-    // Get visitor details from frontend
     const { name,email,phone,purpose,visitDate,hostId} = req.body;
 
     // These fields are mandatory for submitting a request
     if (!name || !phone || !purpose || !visitDate || !hostId) {
       return res.status(400).json({
+        success: false,
         msg: "Please fill all required fields."
       });
     }
@@ -30,16 +26,13 @@ export const createPreRegistration = async (req, res) => {
     // Create a new pre-registration request
     const registration = new PreRegistration({name,email,phone,purpose,visitDate,hostId });
 
-    // Save request in MongoDB
     await registration.save();
-   //return response that pre=registration submitted
     return res.status(201).json({
       msg: "Pre-registration submitted successfully.",
       preRegistration: registration
     });
 
   } catch (err) {
-// logs the error for debugging
     console.log("Create Pre-Registration Error:", err);
     return res.status(500).json({
       msg: "Server Error"
@@ -50,13 +43,10 @@ export const createPreRegistration = async (req, res) => {
 // Get All Pre-Registrations
 export const getPreRegistrations = async (req, res) => {
   try {
-
-    // Fetch all submitted pre-registration requests
     const registrations = await PreRegistration.find();
     return res.status(200).json(registrations);
 
   } catch (err) {
-// logs the error for debugging later
     console.log("Fetch Pre-Registrations Error:", err);
     return res.status(500).json({
       msg: "Server Error"
@@ -67,14 +57,14 @@ export const getPreRegistrations = async (req, res) => {
 // Approve Pre-Registration
 export const approvePreRegistration = async (req, res) => {
   try {
-    // Get pre-registration ID from URL
     const { id } = req.params;
 
-    // Find the request by id
     const registration = await PreRegistration.findById(id);
+
    //if registration not found
     if (!registration) {
       return res.status(404).json({
+        success: false,
         msg: "Pre-registration request not found."
       });
     }
@@ -88,7 +78,6 @@ export const approvePreRegistration = async (req, res) => {
 
     // Create visitor only if not already present
     if (!visitor) {
-
       visitor = new Visitor({
         name: registration.name,email: registration.email,
         phone: registration.phone,purpose: registration.purpose
@@ -103,17 +92,16 @@ export const approvePreRegistration = async (req, res) => {
       date: registration.visitDate,
       status: "pending"
     });
+
    // save appointment in mongodb databasse as approved
     await appointment.save();
     return res.status(200).json({
       msg: "Pre-registration approved successfully.",
-      visitor,
-      appointment
+      visitor, appointment
     });
 
   } catch (err) {
     console.log("Approve Pre-Registration Error:", err);
-  // show error on the display
     return res.status(500).json({
       msg: "Server Error"
     });
@@ -123,8 +111,6 @@ export const approvePreRegistration = async (req, res) => {
 // Reject Pre-Registration
 export const rejectPreRegistration = async (req, res) => {
   try {
-
-    // Get pre-registration ID from URL
     const { id } = req.params;
     // Find the request by visitor id
     const registration = await PreRegistration.findById(id);
@@ -138,7 +124,6 @@ export const rejectPreRegistration = async (req, res) => {
 
     // Update request status to rejected
     registration.status = "rejected";
-// save the status in mongodb
     await registration.save();
 
     return res.status(200).json({

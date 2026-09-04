@@ -5,10 +5,7 @@ import roleMiddleware from "../middleware/roleMiddleware.js";
 
 /*
 Visitor Log Routes: This file manages visitor entry and exit records.
-It provides routes to:
-Record visitor check-in, Record visitor check-out, View all visitor logs.
-
-These routes are protected so that only authorizedusers can access them.
+It provides routes to: Record visitor check-in, Record visitor check-out, View all visitor logs.These routes are protected so that only authorizedusers can access them.
 */
 
 //create express router

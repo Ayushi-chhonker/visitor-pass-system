@@ -13,22 +13,20 @@ This controller is responsible for:
 // Create Appointment
 export const createAppointment = async (req, res) => {
   try {
-
-    // Read appointment details sent from frontend
     const { visitorId, hostId, date } = req.body;
 
     // These fields are mandatory for creating an appointment
     if (!visitorId || !hostId || !date) {
       return res.status(400).json({
+        success: false,
         msg: "Please provide all appointment details."
       });
     }
 
     // Create a new appointment document
     const appointment = new Appointment({ visitorId,hostId,date});
-
-    // Save appointment in MongoDB
     await appointment.save();
+
     // Find visitor details to send confirmation email
     const visitor = await Visitor.findById(visitorId);
 
@@ -44,7 +42,7 @@ Date : ${date}
 Thank you.`
       );
     }
-// return response on display that appointment created successfully
+
     return res.status(201).json({
       msg: "Appointment created successfully.",
       appointment
@@ -69,7 +67,6 @@ export const getAppointments = async (req, res) => {
       .populate("hostId");
 
     return res.status(200).json(appointments);
-  // for error finding so that debugging would be easy later
   } catch (err) {
     console.log("Fetch Appointment Error:", err);
 
@@ -82,8 +79,6 @@ export const getAppointments = async (req, res) => {
 // Approve Appointment
 export const approveAppointment = async (req, res) => {
   try {
-
-    //get appointment Id from URL
     const { id } = req.params;
     // Find appointment in database
     const appointment = await Appointment.findById(id);
@@ -96,13 +91,10 @@ export const approveAppointment = async (req, res) => {
 
     // Update appointment status after approval
     appointment.status = "approved";
-   // save status of appointment in mongodb
     await appointment.save();
 
     // Fetch visitor details by its id for sending notifications
-    const visitor = await Visitor.findById(
-      appointment.visitorId
-    );
+    const visitor = await Visitor.findById(appointment.visitorId);
 
     if (visitor) {
       // Send approval email if visitor email exists
@@ -113,30 +105,26 @@ export const approveAppointment = async (req, res) => {
           visitor.email,
           "Appointment Approved",
           `Hello ${visitor.name},
-
-Your appointment has been approved successfully.
-You can now visit the office.
-Thank you.`
-        );
+        Your appointment has been approved successfully.
+        You can now visit the office.
+        Thank you.`
+       );
       }
 
       // Send SMS notification to visitor
       await sendSMS(
         visitor.phone,
         `Hello ${visitor.name},
-
-Your appointment has been approved successfully.
-Please carry your visitor pass while visiting.`
+      Your appointment has been approved successfully.
+      Please carry your visitor pass while visiting.`
       );
     }
 
-    //as a response gave return msg that appointment approved successfully
     return res.status(200).json({
       msg: "Appointment approved successfully.",
       appointment
     });
 
-    //for error finding
   } catch (err) {
     console.log("Approve Appointment Error:", err);
     return res.status(500).json({
@@ -148,16 +136,13 @@ Please carry your visitor pass while visiting.`
 // Check-In Visitor
 export const checkInVisitor = async (req, res) => {
   try {
-
-    // get appointment Id from request URL
     const { id } = req.params;
-    // Find appointment using its Id
     const appointment = await Appointment.findById(id);
 
-    // Appointment should exist before check-in
-    //If appointment not exist then
+    // Appointment should exist before check-in andIf appointment not exist then
     if (!appointment) {
       return res.status(404).json({
+        success: false,
         msg: "Appointment not found."
       });
     }
@@ -181,7 +166,6 @@ export const checkInVisitor = async (req, res) => {
     });
 
   } catch (err) {
-    // Log the actual error for debugging
     console.log("Check-In Error:", err);
     return res.status(500).json({
       msg: "Server Error"
@@ -192,15 +176,13 @@ export const checkInVisitor = async (req, res) => {
 // Check-Out Visitor
 export const checkOutVisitor = async (req, res) => {
   try {
-
-    // get appointment Id from request URL
     const { id } = req.params;
-    // Find appointment in database by id
     const appointment = await Appointment.findById(id);
 
     // Appointment must exist before check-out and if not then
     if (!appointment) {
       return res.status(404).json({
+        success: false,
         msg: "Appointment not found."
       });
     }
@@ -215,7 +197,6 @@ export const checkOutVisitor = async (req, res) => {
     // Save visitor exit time and update appointment status in database
     appointment.status = "checked-out";
     appointment.checkOutTime = new Date();
-
     await appointment.save();
 
     return res.status(200).json({
@@ -224,9 +205,7 @@ export const checkOutVisitor = async (req, res) => {
     });
 
   } catch (err) {
-    // Log the error so it can be debugged later
     console.log("Check-Out Error:", err);
-
     return res.status(500).json({
       msg: "Server Error"
     });

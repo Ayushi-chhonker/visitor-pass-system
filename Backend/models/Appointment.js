@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import Visitor from "../models/Visitor.js";
-import User from "../models/User.js";
-import sendEmail from "../utils/sendEmail.js";
+// import Visitor from "../models/Visitor.js";
+// import User from "../models/User.js";
+// import sendEmail from "../utils/sendEmail.js";
 
 const appointmentSchema = new mongoose.Schema({
      visitorId: {

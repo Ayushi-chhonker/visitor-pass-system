@@ -1,313 +1,317 @@
-# Visitor Pass Management System
+ Visitor Pass Management System
+A full-stack web application for managing visitors, appointments, visitor passes, QR-based verification, and visitor check-in/check-out in an organized and secure manner.
 
-GitHub Repository:
-https://github.com/Ayushi-chhonker/visitor-pass-system
+The system is designed to reduce manual visitor entry processes and provide a digital workflow for visitor registration, appointment management, pass generation, and entry/exit tracking.
 
-1. Project Overview
 
-The Visitor Pass Management System is a web-based application designed to manage visitor entry, appointments, QR-based passes, and visitor tracking within an organization.
+ Project Overview
+The Visitor Pass Management System provides a centralized platform where authorized users can manage visitors and appointments and generate digital visitor passes.
+Each visitor pass contains a unique QR code that can be scanned at the time of entry and exit. The first successful scan records the visitor's check-in time, while the second scan records the check-out time.
+The backend is built using Node.js and Express.js, while MongoDB is used for data storage and React.js is used for the frontend.
 
-The system allows visitors to pre-register, employees to manage appointments, administrators to approve requests, and security staff to verify visitor passes through QR scanning.
-
+ Objectives:
+The main objectives of this project are:
+1 Digitize the visitor registration process.
+2 Manage visitor information efficiently.
+3 Manage appointments between visitors and employees.
+4 Generate digital visitor passes.
+5 Generate QR codes for visitor verification.
+6 Provide PDF versions of visitor passes.
+7 Track visitor check-in and check-out times.
+8 Implement authentication and role-based authorization.
+9 Maintain visitor and appointment records in MongoDB.
+10 Provide a structured and user-friendly interface for managing visitors.
 
 # Features
 
-1.  Authentication & Authorization
-
+1 Authentication
+* User registration
+* User login
+* Password hashing using bcrypt
 * JWT-based authentication
-* Role-based access control
-* Roles:
+* Protected backend routes
+* Token verification using authentication middleware
+* Role-based authorization
 
-  * Admin
-  * Employee
-  * Security
-  * visitor
+2 Visitor Management
+* Create visitor records
+* View visitor information
+* Update visitor information
+* Delete visitor records
+* Store visitor details in MongoDB
 
-
-2. Visitor Management
-
-* Add visitor details
-* Upload visitor photo
-* View visitors
-* Delete visitors
-
-3. Appointment Management
-
+3 Appointment Management
 * Create appointments
-* Approve appointments
-* Appointment status tracking
+* Associate visitors with appointments
+* Associate appointments with employees/hosts
+* Manage appointment information
+* Track appointment check-in and check-out times
 
-4. Pre-Registration System
+4 Visitor Pass Generation
+* Generate digital visitor passes
+* Associate passes with visitors and appointments
+* Store generated passes in MongoDB
+* Generate a unique QR code for each pass
 
-* Visitor pre-registration form
-* Host selection dropdown
-* Admin approval/rejection workflow
-* Automatic visitor creation after approval
-* Automatic appointment creation after approval
+5 QR Code Verification
+The QR code contains the visitor and appointment information required for verification.
+The visitor verification workflow is:
+First scan-visitor checked-in,second scan-visitor checked out and thrid scan- visitor checked out already.
 
-5. Visitor Pass Management
+6 PDF Visitor Pass
+A visitor pass can be generated as a PDF containing information such as:
+ Visitor name, Email, Phone number, Purpose of visit, Pass ID, Pass status, QR code
 
-* Generate QR-based visitor passes
-* Store QR data in database
-* Verify visitor passes
+7 Role-Based Access
+Different users can be given different levels of access based on their assigned role.
+The system uses authentication middleware and role middleware to control access to protected routes.
 
-6. Check-In / Check-Out
+8 Notification Support
+The project currently contains a notification structure for SMS functionality.
 
-* QR code scanning
-* Visitor check-in recording
-* Visitor check-out recording
-* Visit log maintenance
+The SMS functionality is currently implemented as a development mock and logs the notification instead of sending a real SMS through a production SMS gateway.
 
-7. Notifications
-
-* Email notifications
-* SMS notification support
-
-8. Reporting
-
-* Dashboard statistics
-* CSV export functionality
-
-9. PDF Badge Generation
-
-* Visitor badge generation
-* Embedded QR code
-* Visitor information displayed on PDF pass
+A real SMS provider can be integrated in a future version.
 
 
-# Technology Stack
+# Technologies Used
 
 1. Frontend
 
-* React.js
-* Axios
-* React Router DOM
+ React.js, JavaScript, HTML, CSS, Axios
 
 2. Backend
 
-* Node.js
-* Express.js
+ Node.js, Express.js, JavaScript, JWT, bcrypt.js
 
 3. Database
+ MongoDB, Mongoose
 
-* MongoDB
-* Mongoose
+4. Other Libraries
+ QRCode, PDFKit, Multer, Nodemailer
 
-4. Authentication
+#  Authorization Flow
+Protected requests contain the JWT in the Authorization header:
 
-* JSON Web Token (JWT)
-* bcryptjs
+Authorization: Bearer <JWT_TOKEN>
 
-5. Additional Libraries
+The authentication middleware:
+1 Reads the Authorization header.
+2 Extracts the token.
+3 Verifies the token using the JWT secret.
+4 Stores the decoded information in `req.user`.
+5 Allows the request to continue.
 
-* QRCode
-* PDFKit
-* Multer
-* Nodemailer
+The role middleware then checks whether the authenticated user's role is allowed to access the requested route.
 
-# Project Structure
+Request
+   ↓
+JWT Authentication
+   ↓
+Token Valid?
+  /     \
+No       Yes
+↓         ↓
+401     req.user
+            ↓
+      Role Authorization
+            ↓
+       Role Allowed?
+        /       \
+      No         Yes
+      ↓           ↓
+     403        next()
 
-Visitor-pass-system
-│
-├── Backend
-│   ├── controllers
-│   ├── models
-│   ├── routes
-│   ├── middleware
-│   ├── utils
-│   └── uploads
-│
-├── frontend
-│   ├── src
-│   │   ├── pages
-│   │   ├── components
-│   │   └── App.js
-│
-└── README.md
+#  PDF Generation Workflow
 
-# Installation
+After a pass has been generated, the system can generate a PDF visitor badge.
+Existing Visitor Pass then Fetch Pass from MongoDB then Populate Visitor Information then Populate Appointment Information after then Create PDF after that Add Visitor Details, Add QR Code and then Return PDF to Browser
 
-1. Clone Repository
-git clone <repository-url>
+The PDF is generated using PDFKit.
 
-2. Backend Setup
+# 📷 QR Check-In / Check-Out Workflow
+The QR verification system uses the visitor ID and appointment ID associated with the pass.
 
-cd Backend
-npm install
+### First Scan
+If the appointment does not have a check-in time:
+checkInTime = current date/time
+The visitor is marked as checked in.
 
-3. Frontend Setup
+### Second Scan
+If the visitor has already checked in but has no check-out time:
+checkOutTime = current date/time
+The visitor is marked as checked out.
 
-cd frontend
-npm install
+### Third Scan
+If both times already exist:
+Visitor has already checked out.
+This prevents the same pass from being repeatedly used to create additional check-in/check-out records.
 
 
-# Environment Variables
+# Testing Approach
+Testing was performed after debugging the pass-generation workflow and related backend issues.
+The application was tested through the actual frontend and backend rather than relying only on code inspection.
+The backend terminal and browser console were also checked for runtime errors during testing.
 
-Create a `.env` file inside the Backend folder.
+#  Issues Identified During Development
+During development, a variable naming mismatch was identified in the visitor pass generation controller.
+The issue involved inconsistent variable names such as:
 
-.env
+qrContent / qrData
+qrImage / qrCodeImage
+pass / visitorPass
+
+These inconsistencies caused runtime errors during pass generation.The controller was corrected so that the same variable names are used consistently throughout the pass-generation process.After making the corrections, pass generation, QR generation, PDF generation, and QR verification were tested again.
+
+# SMS Notification Status
+
+SMS notification functionality is currently implemented as a mock development feature.
+At present, the application does not connect to a production SMS gateway. Instead, the notification function provides console output for development and testing.
+
+For example: SMS sent to: <phone number>
+This was intentionally documented rather than being presented as a fully implemented SMS service.
+A future version can integrate a service such as an SMS API provider to send real notifications.
+
+# 🔒 Environment Variables
+
+Create a `.env` file inside the backend directory.
+
+Example:
+PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 EMAIL_USER=your_email
 EMAIL_PASS=your_email_password
-PORT=5000
 
-# Running the Application
+Do not upload the `.env` file to GitHub.
 
-1. Start Backend
+Add it to `.gitignore`:
+.env
+node_modules/
+uploads/
 
-Inside bash commands:
-cd Backend
-npm run dev
+# Installation and Setup
 
-2. Start Frontend
+ 1. Clone the repository
 
-  Inside bash commands:
-cd frontend
-npm start
+bash
+git clone <your-repository-url>
+Move into the project directory:
 
-# Demo Data / Seed Data
+bash
+cd Visitor-Pass-Management-System
 
-The project includes sample data for testing purposes.
+ 2. Backend Setup
+Move into the backend folder:
 
-1. Running the Seed Script
+bash:cd backend
 
-Inside bash
-cd Backend
-node seed.js
+Install dependencies:
+bash: npm install
 
-2. Seeded Records
+Create the `.env` file and configure the required environment variables.
 
-The seed script creates:
-
-- Sample Users (Admin, Employee, Security)
-- Sample Visitors
-- Sample Appointments
-- Sample Passes
-These records can be used to test:
-
-* Visitor Management
-* Appointment Management
-* Pass Generation
-* QR Verification
-* Dashboard Statistics
-
-# Test User Accounts
-
-The seed script automatically creates the following accounts:
-
- Role      Email                                          Password     
- Admin     [admin@test.com](mailto:admin@test.com)        password123 
- Employee  [employee@test.com](mailto:employee@test.com)  password123 
- Security  [security@test.com](mailto:security@test.com)  password123 
-Visitor    [visitor@test.com](mailto:visitor@test.com)    password123 
-
-# Main API Endpoints
-
-1. Authentication
-POST /api/auth/register
-POST /api/auth/login
-
-2. Visitors
-GET /api/visitors
-POST /api/visitors
-DELETE /api/visitors/:id
-
-3. Appointments
-GET /api/appointments
-POST /api/appointments
-PUT /api/appointments/:id/approve
-PUT /api/appointments/:id/reject
-
-4. Passes
-POST /api/passes
-GET /api/passes
-GET /api/passes/pdf/:id
-GET /api/passes/verify/:visitorId/:appointmentId
-PUT /api/appointments/checkin/:id
-PUT /api/appointments/checkout/:id
-
-5. Pre-Registrations
-POST /api/preregistrations
-GET /api/preregistrations
-PUT /api/preregistrations/:id/approve
-PUT /api/preregistrations/:id/reject
+Start the backend:
+bash:npm run dev
 
 
-# Application Workflow
-
-Visitor
-   ↓
-Pre-Registration
-   ↓
-Admin Approval
-   ↓
-Appointment Created
-   ↓
-Pass Generated
-   ↓
-QR Verification
-   ↓
-Check-In
-   ↓
-Check-Out
-
-# Testing Report
-
-1. Testing Summary
-
-The Visitor Pass Management System was tested for authentication, visitor management, appointment handling, QR-based pass generation, check-in/check-out workflow, and reporting features.
-
-Testing was performed on all major modules including:
-
-- Authentication
-- Visitor Management
-- Appointment Management
-- QR Pass Generation
-- Check-In / Check-Out
-- Dashboard Reporting
-
-All tested features worked successfully during project evaluation.
-
-2. Test Environment
-
-* Frontend: React.js
-* Backend: Node.js, Express.js
-* Database: MongoDB
-* Authentication: JWT
-* Browser Used: Google Chrome / Mozilla Firefox
-* Operating System: Windows 10
-
-3. Challenges Faced
-
-* Implementing role-based authentication using JWT.
-* Integrating QR code generation and QR scanning functionality.
-* Managing visitor check-in and check-out using a single QR code.
-* Generating downloadable PDF visitor passes.
-* Handling email notifications during appointment approval.
+The backend will run on the configured port, for example:
+http://localhost:5000
 
 
-4. Result
+ 3. Frontend Setup
 
-All major functionalities of the Visitor Pass Management System were tested successfully. The application correctly handles visitor registration, appointment management, QR-based pass generation, check-in/check-out operations, role-based access control, PDF generation, and reporting features.
+Open another terminal and move to the frontend folder:
 
-5. Learning Outcomes
-Through this project, I gained practical experience in:
+bash: cd frontend
 
- React.js frontend development
- REST API development using Express.js
- MongoDB database operations
- JWT authentication and authorization
- QR code generation and verification
- File uploads using Multer
- PDF generation using PDFKit
+Install dependencies:
 
+bash: npm install
+
+Start the frontend:
+bash: npm start
+The React application will open in the browser.
 
 
+# API Overview
 
-# Author
-Ayushi Chhonker
-UIET, Panjab University
+The backend follows a REST API structure. Typical API groups include:
+/auth
+/visitors
+/appointments
+/passes
+/logs
+/preregistration
 
-Visitor Pass Management System
-Full Stack Web Development Project
+Protected endpoints require a valid JWT token.The exact routes may vary according to the route configuration in the project.
+
+# 📊 Database
+MongoDB is used as the primary database.The application stores information related to:
+
+ Users,Visitors,Appointments,Visitor passes, Check-in/check-out records, Other application-related records
+Mongoose is used to define schemas and interact with MongoDB.
+
+#  AI Usage and Development Transparency
+AI tools were used during development as a learning and development aid. They were used for understanding programming concepts, exploring implementation approaches, debugging errors, improving code readability, and preparing documentation.
+
+Some initial backend implementations were developed with AI assistance. During review and testing, issues were identified in the implementation, including variable naming inconsistencies in passController.js that affected QR-code pass generation. These issues were manually traced, corrected, and tested as part of the rework process.
+
+The final implementation was reviewed and tested by the developer, with particular attention to authentication, authorization, visitor management, appointment handling, pass generation, QR verification, PDF generation, and the check-in/check-out workflow.
+
+AI-generated suggestions were not treated as a substitute for understanding, debugging, or testing. The developer takes responsibility for understanding the final code and verifying its behavior.
+
+
+AI assistance was **not treated as a replacement for testing or understanding the code**.
+
+# Learning Outcomes
+Through this project, the following concepts were practiced:
+
+* MERN stack development
+* REST API development
+* Express.js routing
+* MongoDB database operations
+* Mongoose models
+* JWT authentication
+* Role-based authorization
+* Password hashing
+* QR code generation
+* PDF generation
+* File handling
+* API integration
+* Frontend-backend communication
+* Debugging runtime errors
+* Testing full-stack application workflows
+
+# Future Improvements
+
+The following features can be added in future versions:
+
+1. Real SMS gateway integration
+2. Email notification improvements
+3. Visitor photo capture/upload
+4. More advanced role-based permissions
+5. Admin dashboard analytics
+6. Search and filtering
+7. Visitor history reports
+8. Automatic appointment reminders
+9. QR code expiration
+10. Pass expiration based on appointment time
+11. Improved audit logging
+12. Deployment to a cloud platform
+13. Automated testing
+
+# Current Limitations
+
+The current version has the following limitations:
+
+1. SMS notifications are currently mocked and are not connected to a production SMS gateway.
+2. The application is primarily tested in a local development environment.
+3. Production deployment and infrastructure configuration are outside the current project scope.
+
+# 👨‍💻 Developer
+
+**Ayushi Chhonker**
+B.Tech – Electronics and Communication Engineering
+UIET Chandigarh
+This project was developed for educational and academic purposes.

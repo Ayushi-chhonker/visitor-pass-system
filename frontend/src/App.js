@@ -13,30 +13,27 @@ import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 function App() {
-  const user = JSON.parse(
-  localStorage.getItem("user")
-);
+  const storedUser = localStorage.getItem("user");
+
+let user = null;
+try {
+  user = storedUser ? JSON.parse(storedUser) : null;
+} catch (error) {
+  console.log("Invalid user data in localStorage");
+  localStorage.removeItem("user");
+}
 
 const role = user?.role;
-
 const handleLogout = () => {
-
   localStorage.clear();
-
   window.location.href = "/login";
-
 };
 
   return (
-
     <BrowserRouter>
-
       <div className="container">
-
         <h1>Visitor Pass System</h1>
-
         <nav className="navbar">
-
           {role === "admin" && (
           <>
              <Link to="/dashboard">
@@ -49,12 +46,9 @@ const handleLogout = () => {
 
           <br /><br />
 
-          <Link to="/login">
-            Login
-          </Link>
+          <Link to="/login"> Login </Link>
 
           <br /><br />
-
           {(role === "admin" || role === "employee") && (
           <>
             <Link to="/visitor">

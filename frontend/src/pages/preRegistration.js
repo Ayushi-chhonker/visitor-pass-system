@@ -1,50 +1,60 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+
+/*
+Pre-Registration Page: This page allows a visitor to submit a visit request before coming to the office.
+Workflow:
+ Load available hosts (employees).
+ Visitor fills the form.
+ Form data is sent to backend.
+ Backend stores the request for admin approval.
+*/
 
 function PreRegistration() {
 
+  // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [purpose, setPurpose] = useState("");
   const [visitDate, setVisitDate] = useState("");
   const [hostId, setHostId] = useState("");
-  const [hosts , setHosts] = useState([])
-  
-  useEffect(() => {
-  fetchHosts();
-}, []);
-const fetchHosts = async () => {
-  try {
-    const res = await axios.get(
-      "http://localhost:5000/api/auth/hosts"
-    );
-    setHosts(res.data);
-  } catch (error) {
-    console.log(error);
-  }
-};
 
-  const submitForm = async (e) => {
+  // Stores employee list for host dropdown
+  const [hosts, setHosts] = useState([]);
 
-    e.preventDefault();
+  // Load hosts when page opens
+  useEffect(() => { fetchHosts();
+  }, []);
 
+  // Fetch all available hosts
+  const fetchHosts = async () => {
     try {
+      const hostResponse = await axios.get(
+        "http://localhost:5000/api/auth/hosts"
+      );
+      setHosts(hostResponse.data);
+    } catch (error) {
+      console.log("Unable to fetch hosts:", error);
+    }
+  };
 
+  // Submit Pre-registration Form
+  const submitForm = async (event) => { event.preventDefault();
+
+    // Basic validation before sending request
+    if (!name || !phone || !purpose || !visitDate || !hostId) {
+      alert("Please fill all required fields.");
+      return;
+    }
+    try {
       await axios.post(
         "http://localhost:5000/api/preregistrations",
-        {
-          name,
-          email,
-          phone,
-          purpose,
-          visitDate,
-          hostId
-        }
+        { name, email, phone, purpose, visitDate, hostId}
       );
+      alert("Pre-registration submitted successfully.");
 
-      alert("Pre-registration submitted successfully");
-
+      // Clear form after successful submission
       setName("");
       setEmail("");
       setPhone("");
@@ -53,98 +63,80 @@ const fetchHosts = async () => {
       setHostId("");
 
     } catch (error) {
-
-      console.log(error);
-
+      console.log("Pre-registration Error:", error);
       alert(
         error.response?.data?.msg ||
-        "Something went wrong"
+        "Unable to submit pre-registration."
       );
-
     }
-
   };
 
   return (
-
     <div>
-
-      <h2>Pre Registration</h2>
-
+      <h2>Visitor Pre-Registration</h2>
       <form onSubmit={submitForm}>
-
         <input
-          type="text"
-          placeholder="Enter Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          type="text"  placeholder="Enter Name"  value={name}  onChange={(event) =>
+            setName(event.target.value)}
         />
 
-        <br /><br />
+        <br />
+        <br />
 
-        <input
-          type="email"
-          placeholder="Enter Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+        <input type="email" placeholder="Enter Email" value={email} onChange={(event) =>  setEmail(event.target.value) }
         />
 
-        <br /><br />
+        <br />
+        <br />
 
         <input
-          type="text"
-          placeholder="Enter Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          type="text" placeholder="Enter Phone Number" value={phone} onChange={(event) =>
+            setPhone(event.target.value)
+          }
         />
 
-        <br /><br />
+        <br />
+        <br />
 
-        <input
-          type="text"
-          placeholder="Purpose"
-          value={purpose}
-          onChange={(e) => setPurpose(e.target.value)}
+        <input type="text" placeholder="Purpose of Visit" value={purpose} onChange={(event) =>
+            setPurpose(event.target.value)
+          }
         />
 
-        <br /><br />
-
-        <input
-          type="date"
-          value={visitDate}
-          onChange={(e) => setVisitDate(e.target.value)}
+        <br />
+        <br />
+        <input type="date" value={visitDate} onChange={(event) =>
+            setVisitDate(event.target.value)
+          }
         />
 
-        <br /><br />
-        <select value={hostId}
-  onChange={(e) => setHostId(e.target.value)}
-   >
-  <option value="">
-    Select Host
-  </option>
-  {
-    hosts.map((host) => (
-      <option
-        key={host._id}
-        value={host._id}
-      >
-        {host.name}
-      </option>
-    ))
-  }
-</select>
-        <button type="submit">
+        <br />
+        <br />
+        {/* Employee list received from backend */}
+        <select  value={hostId}  onChange={(event) =>  setHostId(event.target.value)
+          }
+        >
 
-          Submit Pre-Registration
+          <option value="">
+            Select Host
+          </option>
 
-        </button>
+          {
+            hosts.map((host) => (
+              <option  key={host._id}  value={host._id}
+              >
+                {host.name}
+              </option>
+            ))
+          }
 
+        </select>
+        <br />
+        <br />
+
+        <button type="submit">  Submit Pre-Registration</button>
       </form>
-
     </div>
-
   );
-
 }
-
 export default PreRegistration;
