@@ -129,7 +129,7 @@ Existing Visitor Pass then Fetch Pass from MongoDB then Populate Visitor Informa
 
 The PDF is generated using PDFKit.
 
-# 📷 QR Check-In / Check-Out Workflow
+# QR Check-In / Check-Out Workflow
 The QR verification system uses the visitor ID and appointment ID associated with the pass.
 
 ### First Scan
@@ -163,17 +163,18 @@ pass / visitorPass
 
 These inconsistencies caused runtime errors during pass generation.The controller was corrected so that the same variable names are used consistently throughout the pass-generation process.After making the corrections, pass generation, QR generation, PDF generation, and QR verification were tested again.
 
-# SMS Notification Status
+### 8 Notification Support
 
-SMS notification functionality is currently implemented as a mock development feature.
-At present, the application does not connect to a production SMS gateway. Instead, the notification function provides console output for development and testing.
+The system supports SMS notifications using the **Textplate SMS API**.SMS notifications are sent to the visitor's registered phone number when an appointment is approved.The SMS integration uses environment variables for the API credentials:
 
-For example: SMS sent to: <phone number>
-This was intentionally documented rather than being presented as a fully implemented SMS service.
-A future version can integrate a service such as an SMS API provider to send real notifications.
+TEXTPLATE_API_KEY=your_textplate_api_key
+TEXTPLATE_TEMPLATE_ID=your_textplate_template_id
+
+The API key is stored in the `.env` file and is not included in the source code or GitHub repository.
+The SMS functionality was tested successfully using the Textplate API.
+
 
 # 🔒 Environment Variables
-
 Create a `.env` file inside the backend directory.
 
 Example:
@@ -184,11 +185,36 @@ EMAIL_USER=your_email
 EMAIL_PASS=your_email_password
 
 Do not upload the `.env` file to GitHub.
-
-Add it to `.gitignore`:
+Add it to .gitignore:
 .env
 node_modules/
 uploads/
+
+# Seed / Demo Data
+The backend includes a 'seed.js' file to create some sample data for testing and demonstration.
+The seed script creates:
+* Admin user
+* Employee user
+* Security user
+* Sample visitor
+* Approved appointment
+* Sample visitor pass
+
+The script checks whether the demo records already exist before creating them, so running it again will not delete existing application data or create duplicate demo records.
+
+ Run Seed Data:
+Make sure the backend ".env" file contains a valid `MONGO_URI`, then run:
+
+inside bash
+cd Backend
+node seed.js
+
+Demo Login Credentials:
+ Admin| admin@test.com(mailto:admin@test.com)| password123 
+Employee| employee@test.com(mailto:employee@test.com)| password123 
+Security| security@test.com(mailto:security@test.com)| password123 
+
+Note:These credentials and records are provided only for development, testing, and project demonstration. They should not be used in a production environment.
 
 # Installation and Setup
 
@@ -287,27 +313,25 @@ Through this project, the following concepts were practiced:
 
 The following features can be added in future versions:
 
-1. Real SMS gateway integration
-2. Email notification improvements
-3. Visitor photo capture/upload
-4. More advanced role-based permissions
-5. Admin dashboard analytics
-6. Search and filtering
-7. Visitor history reports
-8. Automatic appointment reminders
-9. QR code expiration
-10. Pass expiration based on appointment time
-11. Improved audit logging
-12. Deployment to a cloud platform
-13. Automated testing
+1. Email notification improvements
+2. Visitor photo capture/upload
+3. More advanced role-based permissions
+4. Admin dashboard analytics
+5. Search and filtering
+6. Visitor history reports
+7. Automatic appointment reminders
+8. QR code expiration
+9. Pass expiration based on appointment time
+10. Improved audit logging
+11. Deployment to a cloud platform
+12. Automated testing
 
 # Current Limitations
-
 The current version has the following limitations:
 
-1. SMS notifications are currently mocked and are not connected to a production SMS gateway.
-2. The application is primarily tested in a local development environment.
-3. Production deployment and infrastructure configuration are outside the current project scope.
+1. The application is primarily tested in a local development environment.
+2. Production deployment and infrastructure configuration are outside the current project scope.
+3. SMS functionality depends on the configured Textplate API account and available SMS credits.
 
 # 👨‍💻 Developer
 

@@ -2,20 +2,13 @@ import PreRegistration from "../models/PreRegistration.js";
 import Visitor from "../models/Visitor.js";
 import Appointment from "../models/Appointment.js";
 
-/*
-Pre-Registration Controller
-This controller is responsible for:
-Creating a pre-registration request,Viewing all pre-registration requests,Approving a request and creating visitor & appointment.
-Rejecting a pre-registration request.
-*/
 
-
-// Create Pre-Registration
+// Create a pre-registration request
 export const createPreRegistration = async (req, res) => {
   try {
-    const { name,email,phone,purpose,visitDate,hostId} = req.body;
+    const {  name,  email,  phone,purpose,visitDate,hostId} = req.body;
 
-    // These fields are mandatory for submitting a request
+    // These fields are required
     if (!name || !phone || !purpose || !visitDate || !hostId) {
       return res.status(400).json({
         success: false,
@@ -23,12 +16,16 @@ export const createPreRegistration = async (req, res) => {
       });
     }
 
-    // Create a new pre-registration request
-    const registration = new PreRegistration({name,email,phone,purpose,visitDate,hostId });
+    // Create the pre-registration request
+    const registration = new PreRegistration({
+      name,email,phone,purpose,visitDate,hostId
+    });
 
     await registration.save();
+
     return res.status(201).json({
       msg: "Pre-registration submitted successfully.",
+      success:true,
       preRegistration: registration
     });
 
@@ -40,28 +37,32 @@ export const createPreRegistration = async (req, res) => {
   }
 };
 
-// Get All Pre-Registrations
+
+// Get all pre-registration requests
 export const getPreRegistrations = async (req, res) => {
   try {
+    // Get all pre-registration requests
     const registrations = await PreRegistration.find();
     return res.status(200).json(registrations);
 
   } catch (err) {
     console.log("Fetch Pre-Registrations Error:", err);
     return res.status(500).json({
+      success: false,
       msg: "Server Error"
     });
   }
 };
 
-// Approve Pre-Registration
+
+// Approve a pre-registration request
 export const approvePreRegistration = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Find the pre-registration request
     const registration = await PreRegistration.findById(id);
 
-   //if registration not found
     if (!registration) {
       return res.status(404).json({
         success: false,
@@ -69,35 +70,41 @@ export const approvePreRegistration = async (req, res) => {
       });
     }
 
-    // Update request status
+    // Change the request status to approved
     registration.status = "approved";
     await registration.save();
 
-    // Check whether this visitor already exists
-    let visitor = await Visitor.findOne({phone: registration.phone});
+    // Check if this visitor already exists
+    let visitor = await Visitor.findOne({
+      phone: registration.phone
+    });
 
-    // Create visitor only if not already present
+    // Create a visitor if one does not already exist
     if (!visitor) {
       visitor = new Visitor({
-        name: registration.name,email: registration.email,
-        phone: registration.phone,purpose: registration.purpose
+        name: registration.name,
+        email: registration.email,
+        phone: registration.phone,
+        purpose: registration.purpose
       });
-   // save the visitor in database
+
       await visitor.save();
     }
 
-    // Create appointment for approved visitor
+    // Create an appointment for the visitor
     const appointment = new Appointment({
-      visitorId: visitor._id, hostId: registration.hostId,
+      visitorId: visitor._id,
+      hostId: registration.hostId,
       date: registration.visitDate,
       status: "pending"
     });
 
-   // save appointment in mongodb databasse as approved
     await appointment.save();
+
     return res.status(200).json({
       msg: "Pre-registration approved successfully.",
-      visitor, appointment
+      visitor,
+      appointment
     });
 
   } catch (err) {
@@ -108,21 +115,23 @@ export const approvePreRegistration = async (req, res) => {
   }
 };
 
-// Reject Pre-Registration
+
+// Reject a pre-registration request
 export const rejectPreRegistration = async (req, res) => {
   try {
     const { id } = req.params;
-    // Find the request by visitor id
+
+    // Find the pre-registration request
     const registration = await PreRegistration.findById(id);
 
-    //if registration not found then
     if (!registration) {
       return res.status(404).json({
+        success: false,
         msg: "Pre-registration request not found."
       });
     }
 
-    // Update request status to rejected
+    // Change the request status to rejected
     registration.status = "rejected";
     await registration.save();
 
@@ -132,7 +141,6 @@ export const rejectPreRegistration = async (req, res) => {
     });
 
   } catch (err) {
-// logs the error for debugging
     console.log("Reject Pre-Registration Error:", err);
     return res.status(500).json({
       msg: "Server Error"

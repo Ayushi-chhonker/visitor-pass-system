@@ -1,106 +1,104 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Pass from "./models/Pass.js";
+import bcrypt from "bcryptjs";
+
+import User from "./models/User.js";
 import Visitor from "./models/Visitor.js";
 import Appointment from "./models/Appointment.js";
-import User from "./models/User.js";
-import bcrypt from "bcryptjs";
+import Pass from "./models/Pass.js";
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch((err) => console.log(err));
 const seedData = async () => {
   try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected");
 
-    // Clear old data
-    await User.deleteMany();
-    await Visitor.deleteMany();
-    await Appointment.deleteMany();
-    await Pass.deleteMany();
+    const password = await bcrypt.hash("password123", 10);
+    // Users
+    let admin = await User.findOne({ email: "admin@test.com" });
+    if (!admin) {
+      admin = await User.create({
+        name: "Admin User",
+        email: "admin@test.com",
+        password,
+        role: "admin"
+      });
+    }
 
-    const hashedPassword = await bcrypt.hash(
-  "password123",
-  10
-);
+    let employee = await User.findOne({ email: "employee@test.com" });
+    if (!employee) {
+      employee = await User.create({
+        name: "Rahul Employee",
+        email: "employee@test.com",
+        password,
+        role: "employee"
+      });
+    }
 
-const admin = await User.create({
-  name: "Admin User",
-  email: "admin@test.com",
-  password: hashedPassword,
-  role: "admin"
-});
+    let security = await User.findOne({ email: "security@test.com" });
+    if (!security) {
+      security = await User.create({
+        name: "Security User",
+        email: "security@test.com",
+        password,
+        role: "security"
+      });
+    }
 
-const employee = await User.create({
-  name: "Rahul Employee",
-  email: "employee@test.com",
-  password: hashedPassword,
-  role: "employee"
-});
+    // Visitors
+    let visitor = await Visitor.findOne({ email: "rahul@gmail.com" });
 
-const security = await User.create({
-  name: "Security User",
-  email: "security@test.com",
-  password: hashedPassword,
-  role: "security"
-});
+    if (!visitor) {
+      visitor = await Visitor.create({
+        name: "Rahul Sharma",
+        email: "rahul@gmail.com",
+        phone: "9876543210",
+        purpose: "Project Meeting"
+      });
+    }
 
-console.log("Users Added");
-
-
-
-    // Create Visitors
-  const visitor1 = await Visitor.create({
-  name: "Rahul Sharma",
-  email: "rahul@gmail.com",
-  phone: "9876543210",
-  purpose: "Project Meeting"
-});
-
-const visitor2 = await Visitor.create({
-  name: "Priya Singh",
-  email: "priya@gmail.com",
-  phone: "9999999999",
-  purpose: "Interview"
-});
-
-    console.log("Visitors Added");
-
-
-
-    // Create Appointment
-    const appointment1 = await Appointment.create({
-      visitorId: visitor1._id,
-      hostId: employee._id,
-      date: new Date(),
-      status: "approved"
+    // Appointment
+    let appointment = await Appointment.findOne({
+      visitorId: visitor._id,
+      hostId: employee._id
     });
 
-    console.log("Appointment Added");
+    if (!appointment) {
+      appointment = await Appointment.create({
+        visitorId: visitor._id,
+        hostId: employee._id,
+        date: new Date(),
+        status: "approved"
+      });
+    }
 
-
-
-    // Create Pass
-    const pass1 = await Pass.create({
-      visitorId: visitor1._id,
-      appointmentId: appointment1._id,
-      qrCode: "Demo QR Code"
+    // Pass
+    let pass = await Pass.findOne({
+      visitorId: visitor._id,
+      appointmentId: appointment._id
     });
 
-    console.log("Pass Added");
+    if (!pass) {
+      await Pass.create({
+        visitorId: visitor._id,
+        appointmentId: appointment._id,
+        qrCode: "Demo QR Code"
+      });
+    }
 
-
-    console.log("Seed Data Inserted Successfully");
-    console.log("Admin Email: admin@test.com");
-    console.log("Employee Email: employee@test.com");
-    console.log("Security Email: security@test.com");
+    console.log("Seed data added successfully");
+    console.log("Admin: admin@test.com");
+    console.log("Employee: employee@test.com");
+    console.log("Security: security@test.com");
     console.log("Password: password123");
 
-    process.exit();
+    await mongoose.connection.close();
+
   } catch (error) {
-    console.log(error);
-    process.exit(1);
+    console.log("Error:", error.message);
+    await mongoose.connection.close();
   }
 };
+
 seedData();

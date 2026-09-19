@@ -1,36 +1,24 @@
-/*
-Role Authorization Middleware
-Purpose:
-After the user is authenticated, this middleware checks
-whether the user has permission to access a particular
-route.
-Example: roleMiddleware("admin")
-
-Only users whose role is "admin" will be allowed to
-continue. Other users will receive an access denied
-response.
-*/
-
+// Checks whether the logged-in user's role is allowed to access a particular route.
 const roleMiddleware = (...allowedRoles) => {
   return (req, res, next) => {
-    // Authentication middleware should run first.
-    // It stores the logged-in user's details in req.user.
-    if (!req.user) {
 
+    // authMiddleware should run before this middleware. It verifies the JWT and stores the user's details in req.user.
+    if (!req.user) {
       return res.status(401).json({
         msg: "Authentication required."
       });
     }
 
-    // Check whether the user's role is allowed to access the requested route.
+    // Check if the role stored in the JWT is one of the roles allowed for this route.
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         msg: "Access denied. You do not have permission to perform this action."
       });
     }
-    
-    // User is authorized, continue to the requested route.
+
+    // The user is authenticated and has the required role.
     next();
   };
 };
+
 export default roleMiddleware;

@@ -3,67 +3,69 @@ import QRCode from "qrcode";
 import PDFDocument from "pdfkit";
 import Appointment from "../models/Appointment.js";
 
-/*
-Pass Controller
-This controller is responsible for:
- Generating visitor passes, Creating QR codes, Downloading visitor pass as PDF, Verifying QR code at entry/exit
-*/
-
-// Generate Pass handle request of generating new pass
+// Generate a visitor pass
 export const generatePass = async (req, res) => {
   try {
     const { visitorId, appointmentId } = req.body;
 
+    // Both IDs are required to generate a pass
     if (!visitorId || !appointmentId) {
-    return res.status(400).json({ msg: "Visitor ID and Appointment ID are required." });
-}
+      return res.status(400).json({
+        success: false,
+        msg: "Visitor ID and Appointment ID are required."
+      });
+    }
 
-    // Combine visitor ID and appointment ID.
-   // This information will be stored inside the QR code.
+    // Store visitor and appointment IDs in the QR code
     const qrContent = `Visitor:${visitorId},Appointment:${appointmentId}`;
 
-  // Convert the QR data into a Base64 image.
+    // Convert QR data into a Base64 image
     const qrImage = await QRCode.toDataURL(qrContent);
 
-    // Create a new visitor pass and save it in MongoDB.
+    // Create and save the visitor pass
     const visitorPass = new Pass({
-      visitorId,
-      appointmentId,
-      qrCode: qrImage
+      visitorId, appointmentId, qrCode: qrImage
     });
+
     await visitorPass.save();
     return res.status(201).json(visitorPass);
 
   } catch (error) {
-    console.log("Generate Pass Error:", error)
+    console.log("Generate Pass Error:", error);
     return res.status(500).json({
+      success: false,
       error: error.message
     });
-  }};
+  }
+};
 
-// this function handles request of get all passes
+
+// Get all passes
 export const getPasses = async (req, res) => {
   try {
+    // Get all passes from the database
     const passes = await Pass.find();
     return res.json(passes);
 
   } catch (error) {
+    console.log("Get Passes Error:", error);
     return res.status(500).json({
       error: error.message
     });
   }
 };
 
-// Generate Visitor-pass pdf
-export const generatePassPDF = async (req, res) => {
-  try { const { id } = req.params;
 
-    // Fetch pass details along with visitor and appointment information
+// Generate visitor pass PDF
+export const generatePassPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get pass details with visitor and appointment data
     const visitorPass = await Pass.findById(id)
       .populate("visitorId")
       .populate("appointmentId");
 
-    // Stop if pass is not found
     if (!visitorPass) {
       return res.status(404).json({
         success: false,
@@ -71,18 +73,20 @@ export const generatePassPDF = async (req, res) => {
       });
     }
 
-    // Create a new PDF document
+    // Create a new PDF
     const pdf = new PDFDocument();
 
-    // Set response headers so the browser downloads the PDF
+    // Tell the browser to download the PDF
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition","attachment; filename=VisitorPass.pdf"
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=VisitorPass.pdf"
     );
 
-    // Send PDF directly in the response
+    // Send the PDF directly in the response
     pdf.pipe(res);
 
-    // Draw Outer Border Create a border so that the pass looks like an ID card
+    // Draw the outer border of the pass
     pdf
       .rect(40, 40, 520, 700)
       .stroke();
@@ -94,26 +98,27 @@ export const generatePassPDF = async (req, res) => {
         align: "center"
       });
 
-    // Visitor Details
+    // Visitor details
     pdf.fontSize(14);
+
     pdf.text(
       `Name : ${visitorPass.visitorId.name}`,
-      70,130
+      70, 130
     );
 
     pdf.text(
       `Email : ${visitorPass.visitorId.email || "Not Available"}`,
-      70,160
+      70, 160
     );
 
     pdf.text(
       `Phone : ${visitorPass.visitorId.phone}`,
-      70,190
+      70, 190
     );
 
     pdf.text(
       `Purpose : ${visitorPass.visitorId.purpose}`,
-      70,220
+      70, 220
     );
 
     pdf.text(
@@ -123,34 +128,33 @@ export const generatePassPDF = async (req, res) => {
 
     pdf.text(
       `Pass ID : ${visitorPass._id}`,
-      70, 280
+      70,280
     );
 
-    // QR Code
+    // Show QR code heading
     pdf.fontSize(12);
     pdf.text("QR Code", 385, 320);
 
-    // QR code is stored in Base64 format.
-    // Remove the extra prefix before converting it into an image.
+    // Remove the Base64 prefix from the QR image
     const qrData = visitorPass.qrCode.replace(
       /^data:image\/png;base64,/,
       ""
     );
 
-    // Convert Base64 data into Buffer
-    const qrBuffer = Buffer.from( qrData, "base64" );
+    // Convert Base64 data into a Buffer
+    const qrBuffer = Buffer.from(qrData, "base64");
 
-    // Place QR image inside the PDF
+    // Add QR code to the PDF
     pdf.image(qrBuffer, 340, 150, {
       width: 150, height: 150
     });
 
-    // Instruction below QR
+    // QR code instruction
     pdf
       .fontSize(10)
       .text(
         "Scan this QR code for verification.",
-        320,480
+        320, 480
       );
 
     // Footer
@@ -158,61 +162,61 @@ export const generatePassPDF = async (req, res) => {
       .fontSize(10)
       .text(
         "Please carry this pass during your visit.",
-        0,720,
-        {align: "center"}
+        0,  720,
+        {
+          align: "center"
+        }
       );
 
-    // Finish PDF generation
+    // Finish the PDF
     pdf.end();
+
   } catch (err) {
     console.log("Generate PDF Error:", err);
     return res.status(500).json({
+      success: false,
       msg: "Server Error"
+      
     });
   }
 };
 
-// Verify Visitor Pass
+
+// Verify visitor pass
 export const verifyPass = async (req, res) => {
   try {
     const { visitorId, appointmentId } = req.params;
 
-    // Find the visitor pass using visitor ID and appointment ID
+    // Find the pass using visitor and appointment IDs
     const visitorPass = await Pass.findOne({
-      visitorId,appointmentId
+      visitorId, appointmentId
     })
       .populate("visitorId")
       .populate("appointmentId");
 
-      // if visitor pass not found
     if (!visitorPass) {
       return res.status(404).json({
+        success: false,
         msg: "Visitor pass not found."
       });
     }
 
     // Get appointment details
     const appointment = await Appointment.findById(appointmentId);
-
-    // Check whether appointment exists
     if (!appointment) {
       return res.status(404).json({
+        success: false,
         msg: "Appointment not found."
       });
     }
 
-    /*
-      QR Verification Flow
-      First Scan  = Check-In
-      Second Scan = Check-Out
-      Third Scan  = Already Checked Out
-    */
-
-    // Visitor enters the office for the first time
+    // First scan checks the visitor in
     if (!appointment.checkInTime) {
       appointment.checkInTime = new Date();
+      appointment.status = "checked-in";
+
       await appointment.save();
-//return response as successfully checked-in
+
       return res.status(200).json({
         msg: "Visitor checked in successfully.",
         success: true,
@@ -220,11 +224,13 @@ export const verifyPass = async (req, res) => {
       });
     }
 
-    // Visitor leaves the office
+    // Second scan checks the visitor out
     if (!appointment.checkOutTime) {
       appointment.checkOutTime = new Date();
+      appointment.status = "checked-out";
+
       await appointment.save();
-// return response on screen checkout successfully
+
       return res.status(200).json({
         msg: "Visitor checked out successfully.",
         success: true,
@@ -232,7 +238,7 @@ export const verifyPass = async (req, res) => {
       });
     }
 
-    // QR has already been used for both check-in and check-out
+    // Both check-in and check-out are already completed
     return res.status(400).json({
       msg: "Visitor has already checked out."
     });

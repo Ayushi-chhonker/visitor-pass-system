@@ -1,20 +1,21 @@
 import express from "express";
 import {createPreRegistration,getPreRegistrations,approvePreRegistration,rejectPreRegistration} from "../controllers/preregistrationController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import roleMiddleware from "../middleware/roleMiddleware.js";
 
-/*Pre-Registration Routes
-Purpose=This file contains all routes related to visitorpre-registration.
-It allows visitors to submit their details beforetheir visit and enables the administrator toapprove or reject those requests.*/
-
-// Create Express Router
 const router = express.Router();
 
-// Submit Pre-Registration:Visitors can submit their details before visiting.
-router.post("/",createPreRegistration);
-// View All Pre-Registrations, Returns all submitted pre-registration requests.
-router.get( "/", getPreRegistrations);
-// Approve Pre-Registration
-router.put("/approve/:id",approvePreRegistration);
-// Reject Pre-Registration
-router.put( "/reject/:id",rejectPreRegistration);
+
+// Visitors can submit their details before visiting.This route is public because the visitor may not have an account.
+router.post("/", createPreRegistration);
+
+// Only authorized staff can view pre-registration requests.
+router.get( "/",authMiddleware,roleMiddleware("admin", "employee", "security"),getPreRegistrations);
+
+// Only admin can approve a pre-registration request.
+router.put( "/approve/:id", authMiddleware,roleMiddleware("admin"),approvePreRegistration);
+
+// Only admin can reject a pre-registration request.
+router.put( "/reject/:id", authMiddleware, roleMiddleware("admin"), rejectPreRegistration);
 
 export default router;
