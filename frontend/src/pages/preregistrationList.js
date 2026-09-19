@@ -8,43 +8,69 @@ function PreRegistrationList() {
 
    }, []);
   const fetchData = async () => {
-    try {
+  try {
+    const token = localStorage.getItem("token");
 
-      const res = await axios.get(
-        "http://localhost:5000/api/preregistrations"
-      );
-      setData(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    const res = await axios.get(
+      "http://localhost:5000/api/preregistrations",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setData(res.data);
+
+  } catch (error) {
+    console.log("Fetch Pre-Registration Error:", error);
+  }
+};
 
   const approve = async (id) => {
-    try {
+  try {
+    const token = localStorage.getItem("token");
 
-      await axios.put(
-        `http://localhost:5000/api/preregistrations/approve/${id}`
-      );
-      alert("Pre-registration Approved");
-      fetchData();
-    } catch (error) {
-      console.log(error);
-      alert("Error approving");
-    }
-  };
+    await axios.put(
+      `http://localhost:5000/api/preregistrations/approve/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
 
+    alert("Pre-registration Approved");
+    fetchData();
+
+  } catch (error) {
+    console.log("Approve Error:", error);
+    alert("Error approving");
+  }
+};
   const reject = async (id) => {
-    try {
-      await axios.put(
-        `http://localhost:5000/api/preregistrations/reject/${id}`
-      );
-      alert("Pre-registration Rejected");
-      fetchData();
-    } catch (error) {
-      console.log(error);
-      alert("Error rejecting");
-    }
-  };
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.put(
+      `http://localhost:5000/api/preregistrations/reject/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    alert("Pre-registration Rejected");
+    fetchData();
+
+  } catch (error) {
+    console.log("Reject Error:", error);
+    alert("Error rejecting");
+  }
+};
   return (
 
     <div>

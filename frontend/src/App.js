@@ -71,7 +71,7 @@ const handleLogout = () => {
             Generate Pass
           </Link>
 
-         {role === "security" && (
+         {(role === "security"|| role == "admin" )&& (
           <>
           <Link to="/scanner">
               QR Scanner
